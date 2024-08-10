@@ -10,7 +10,6 @@ PROJECT_DIR = Path(__file__).parent.parent.parent
 
 class OpenAIConfig(BaseModel):
     openai_api_key: str = ""
-    openai_endpoint: str = ""
 
 
 class Database(BaseModel):
