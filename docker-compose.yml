@@ -16,7 +16,7 @@ services:
 
   pgvector:
     hostname: pgvector
-    image: pgvector/pgvector:pg16
+    image: ankane/pgvector
     ports:
       - "5432:5432"
     restart: on-failure:5
@@ -24,6 +24,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
-      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./procurement/db/init.pgsql:/docker-entrypoint-initdb.d/init.sql
+# docker run --name pgvector --hostname pgvector -p 5432:5432 --restart on-failure:5 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -v ./procurement/db/init.pgsql:/docker-entrypoint-initdb.d/init.sql ankane/pgvector

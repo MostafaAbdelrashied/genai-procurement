@@ -17,10 +17,10 @@ DROP SCHEMA IF EXISTS front_door;
 -- Create the schema
 CREATE SCHEMA IF NOT EXISTS front_door;
 
-CREATE EXTENSION IF NOT EXISTS vector SCHEMA front_door;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Create the sessions table
-CREATE TABLE front_door.sessions (
+CREATE TABLE IF NOT EXISTS front_door.sessions (
     session_id UUID PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +28,7 @@ CREATE TABLE front_door.sessions (
 );
 
 -- Create the messages table
-CREATE TABLE front_door.messages (
+CREATE TABLE IF NOT EXISTS front_door.messages (
     message_id UUID PRIMARY KEY,
     session_id UUID NOT NULL,
     prompt TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE front_door.messages (
     FOREIGN KEY (session_id) REFERENCES front_door.sessions (session_id)
 );
 
-CREATE TABLE front_door.embeddings (
+CREATE TABLE IF NOT EXISTS front_door.embeddings (
     embedding_id UUID PRIMARY KEY,
     content TEXT NOT NULL,
     embedding vector (1536),
@@ -47,4 +47,4 @@ CREATE TABLE front_door.embeddings (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX idx_messages_session_id ON front_door.messages (session_id);
+CREATE INDEX IF NOT EXISTS idx_messages_session_id ON front_door.messages (session_id);
