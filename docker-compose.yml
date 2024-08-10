@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "8089:8089"
+    restart: on-failure:5
+    env_file:
+      - ./.env
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+
+  pgvector:
+    hostname: pgvector
+    image: pgvector/pgvector:pg16
+    ports:
+      - "5432:5432"
+    restart: on-failure:5
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

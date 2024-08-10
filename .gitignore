@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+# IDE
+.databricks
+.conda
+.vscode
+.idea
+# Environment definition
+.env
+cache/
