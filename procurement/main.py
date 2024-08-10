@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from procurement.api.api_router import api_router
-from procurement.utils.config import get_settings
 
 
 def custom_generate_unique_id(route: APIRouter):
@@ -13,7 +12,7 @@ def custom_generate_unique_id(route: APIRouter):
 
 
 app = FastAPI(
-    title="ubs-sc-genai chatbot",
+    title="Procurement GenAI chatbot",
     docs_url="/docs",
     generate_unique_id_function=custom_generate_unique_id,
 )
@@ -33,7 +32,7 @@ async def home(request: Request):
     """
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "app_root": get_settings().app_config.app_root},
+        {"request": request},
     )
 
 

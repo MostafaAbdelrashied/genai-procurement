@@ -1,5 +1,5 @@
-FROM container-registry.ubs.net/ubuntu:22.04 AS base
-
+# get lightest ubuntu image
+FROM ubuntu:22.04 AS base
 RUN apt update
 RUN apt install -y python3.11 python3-pip
 
@@ -11,11 +11,8 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
-# Install dependencies
-COPY pip.conf /root/.config/pip/pip.conf
 
 RUN pip3 install poetry
-RUN poetry config certificates.nexus.cert false
 RUN poetry lock --no-update
 RUN poetry install
 

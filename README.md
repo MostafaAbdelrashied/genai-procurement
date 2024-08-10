@@ -1,8 +1,8 @@
-# UBS Procurement Chatbot (Backend)
+# Procurement Chatbot (Backend)
 
 ## Description
 
-This is the backend for the UBS Procurement Chatbot. It is a FastAPI app that uses OpenAI's GPT-4 to generate responses to user queries. These responses are parsed to fill a form that is then sent to the UBS procurement team.
+This is the backend for the Procurement Chatbot. It is a FastAPI app that uses OpenAI's GPT-4 to generate responses to user queries. These responses are parsed to fill a form that is then sent to the procurement team.
 
 ## How to run
 

@@ -13,10 +13,6 @@ class OpenAIConfig(BaseModel):
     openai_endpoint: str = ""
 
 
-class AppConfig(BaseModel):
-    app_root: str = ""
-
-
 class Database(BaseModel):
     hostname: str = "postgres"
     username: str = "postgres"
@@ -28,7 +24,6 @@ class Database(BaseModel):
 
 class Settings(BaseSettings):
     open_ai_config: OpenAIConfig
-    app_config: AppConfig
     database: Database
 
     @computed_field  # type: ignore[misc]

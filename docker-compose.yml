@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     working_dir: /app
     ports:
-      - "8089:8089"
+      - "8080:8080"
     restart: on-failure:5
     env_file:
       - ./.env
@@ -26,4 +26,4 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./procurement/db/init.pgsql:/docker-entrypoint-initdb.d/init.sql

@@ -10,7 +10,7 @@ packages = [{ include = "procurement" }]
 python = "^3.11"
 uvicorn = "^0.30.1"
 fastapi = "^0.111.0"
-fastapi-sessions="^0.3.2"
+fastapi-sessions = "^0.3.2"
 openai = "^1.35.8"
 pydantic = "^2.8.0"
 pydantic-settings = "^2.3.4"
@@ -33,8 +33,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 app = "procurement.main:start"
-
-
-# [[tool.poetry.source]]
-# name = "nexus"
-# url = "https://it4it-nexus-tp-repo.swissbank.com/repository/proxy-lib-python-pypi-oss-python-org/simple/"
