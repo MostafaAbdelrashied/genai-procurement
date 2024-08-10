@@ -8,7 +8,7 @@ class OpenAIEmbeddings:
     def __init__(
         self, api_key: Optional[str] = None, model: str = "text-embedding-3-small"
     ):
-        self.api_key = api_key or get_settings().open_ai_config.openai_api_key
+        self.api_key = api_key or get_settings().open_ai_config.api_key
         self.model = model
         self.client = AsyncOpenAI(api_key=self.api_key)
 

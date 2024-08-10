@@ -20,7 +20,7 @@ class NoteTakingAgent(BaseAgent):
             messages
             + "\n\n"
             + self._read_prompt(
-                "server/prompts/note_taking_sys_prompt.txt",
+                "procurement/prompts/note_taking_sys_prompt.txt",
                 form=json.dumps(form, indent=2),
             )
         )

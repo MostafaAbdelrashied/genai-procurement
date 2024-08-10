@@ -7,7 +7,7 @@ from procurement.utils.config import get_settings
 
 class BaseAgent(ABC):
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=get_settings().open_ai_config.openai_api_key)
+        self.client = AsyncOpenAI(api_key=get_settings().open_ai_config.api_key)
 
     @abstractmethod
     async def process(self, input_prompt: str, **kwargs) -> str:

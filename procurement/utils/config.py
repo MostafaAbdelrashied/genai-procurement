@@ -9,7 +9,7 @@ PROJECT_DIR = Path(__file__).parent.parent.parent
 
 
 class OpenAIConfig(BaseModel):
-    openai_api_key: str = ""
+    api_key: str = ""
 
 
 class Database(BaseModel):
@@ -17,7 +17,7 @@ class Database(BaseModel):
     username: str = "postgres"
     password: SecretStr
     port: int = 5432
-    db: str = "postgres"
+    name: str = "postgres"
     default_db: str = "postgres"
 
 
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
             password=self.database.password.get_secret_value(),
             host=self.database.hostname,
             port=self.database.port,
-            database=self.database.db,
+            database=self.database.name,
         )
 
     @computed_field  # type: ignore[misc]
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
             password=self.database.password.get_secret_value(),
             host=self.database.hostname,
             port=self.database.port,
-            database=self.database.db,
+            database=self.database.name,
         )
 
     @computed_field  # type: ignore[misc]

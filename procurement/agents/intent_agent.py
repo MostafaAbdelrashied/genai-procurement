@@ -17,5 +17,5 @@ class IntentAgent(BaseAgent):
         return (
             messages
             + "\n\n"
-            + self._read_prompt("server/prompts/intent_sys_prompt.txt")
+            + self._read_prompt("procurement/prompts/intent_sys_prompt.txt")
         )

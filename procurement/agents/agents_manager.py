@@ -151,7 +151,7 @@ class AgentsManager:
         return (
             json.loads(session_data.form_data)
             if session_data
-            else get_schema(path="server/schemas/main.json")
+            else get_schema(path="procurement/schemas/main.json")
         )
 
     def _convert_history_to_text(self) -> str:

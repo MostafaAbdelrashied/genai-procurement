@@ -18,4 +18,4 @@ class SpecialistAgent(BaseAgent):
         return response
 
     def _get_sys_prompt(self) -> str:
-        return self._read_prompt("server/prompts/specialist_sys_prompt.txt")
+        return self._read_prompt("procurement/prompts/specialist_sys_prompt.txt")

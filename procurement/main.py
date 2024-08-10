@@ -17,9 +17,9 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
-templates = Jinja2Templates(directory="server/templates")
+templates = Jinja2Templates(directory="procurement/templates")
 # Mount the static directory
-app.mount("/static", StaticFiles(directory="server/static"), name="static")
+app.mount("/static", StaticFiles(directory="procurement/static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -52,7 +52,7 @@ app.add_middleware(
 def start():
     """Launched with `poetry run start` at root level"""
     uvicorn.run(
-        "server.main:app",
+        "procurement.main:app",
         host="0.0.0.0",
         port=8089,
         reload=True,
@@ -62,7 +62,7 @@ def start():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "server.main:app",
+        "procurement.main:app",
         host="0.0.0.0",
         port=8089,
         reload=True,

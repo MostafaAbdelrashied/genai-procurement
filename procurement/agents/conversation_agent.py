@@ -18,6 +18,6 @@ class ConversationAgent(BaseAgent):
 
     def _get_sys_prompt(self, first_empty_field: list):
         return self._read_prompt(
-            "server/prompts/conversation_sys_prompt.txt",
+            "procurement/prompts/conversation_sys_prompt.txt",
             first_empty_field=" --> ".join(first_empty_field),
         )
