@@ -29,7 +29,7 @@ This is the backend for the Procurement Chatbot. It is a FastAPI app that uses O
     docker compose up --build
     ```
 
-    visit <http://localhost:8089> for a simple UI or <http://localhost:8089/docs> for FastAPI endpoints
+    visit <http://localhost:8080> for a simple UI or <http://localhost:8080/docs> for FastAPI endpoints
 
 ## Project Structure
 

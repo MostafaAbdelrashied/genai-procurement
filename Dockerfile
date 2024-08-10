@@ -20,7 +20,7 @@ RUN poetry install
 RUN poetry run uvicorn --version
 
 # Expose the port
-EXPOSE 8089
+EXPOSE 8080
 
 # Run the server
 CMD ["poetry", "run", "app"]
