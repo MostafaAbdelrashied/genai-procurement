@@ -59,13 +59,3 @@ def start():
         reload=True,
         reload_includes=["*.js", "*.html", "*.css"],
     )
-
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "procurement.main:app",
-        host="0.0.0.0",
-        port=8089,
-        reload=True,
-        reload_includes=["*.js", "*.html", "*.css"],
-    )
