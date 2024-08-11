@@ -199,7 +199,6 @@ class DatabaseOperations:
                 .limit(limit)
             )
 
-            await self.db.execute(text(f"SET SCHEMA '{Embedding.metadata.schema}';"))
             result = await self.db.execute(query)
             return result.all()
 
@@ -222,7 +221,6 @@ class DatabaseOperations:
                 Embedding.embedding.__getattr__(distance_type)(target_embedding)
                 < distance
             )
-            await self.db.execute(text(f"SET SCHEMA '{Embedding.metadata.schema}';"))
             result = await self.db.execute(query)
             return result.scalars().all()
 
