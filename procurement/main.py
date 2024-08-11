@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
 from procurement.api.api_router import api_router
 
 
@@ -54,7 +55,7 @@ def start():
     uvicorn.run(
         "procurement.main:app",
         host="0.0.0.0",
-        port=8080,
+        port=8089,
         reload=True,
         reload_includes=["*.js", "*.html", "*.css"],
     )
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "procurement.main:app",
         host="0.0.0.0",
-        port=8080,
+        port=8089,
         reload=True,
         reload_includes=["*.js", "*.html", "*.css"],
     )
