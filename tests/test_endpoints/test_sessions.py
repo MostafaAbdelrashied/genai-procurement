@@ -61,16 +61,19 @@ def test_get_session_messages(client, session_id, expected_status, request):
 
 
 @pytest.mark.parametrize(
-    "session_id, expected_status",
+    "session_id, expected_status, create_if_not_exists",
     [
-        ("get_test_session_id", 200),
-        ("get_non_existent_session_id", 404),
+        ("get_test_session_id", 200, False),
+        ("get_non_existent_session_id", 404, False),
+        ("get_non_existent_session_id", 200, True),
     ],
 )
-def test_update_session(client, session_id, expected_status, request):
+def test_update_session(
+    client, session_id, expected_status, request, create_if_not_exists
+):
     session_id = request.getfixturevalue(session_id)
     response = client.put(
-        f"/sessions/update_session_form/{session_id}",
+        f"/sessions/update_session_form/{session_id}?create_if_not_exists={create_if_not_exists}",
         json={"key": "value"},
     )
     assert response.status_code == expected_status
@@ -83,14 +86,17 @@ def test_update_session(client, session_id, expected_status, request):
         assert response.json() == {"detail": f"Session {session_id} does not exist"}
 
 
-def test_delete_session_success(client, get_test_session_id):
-    response = client.delete(f"/sessions/delete_session/{get_test_session_id}")
-    assert response.status_code == 204
+@pytest.mark.parametrize(
+    "session_id, expected_status",
+    [
+        ("get_test_session_id", 204),
+        ("get_non_existent_session_id", 404),
+    ],
+)
+def test_delete_session(client, session_id, expected_status, request):
+    session_id = request.getfixturevalue(session_id)
+    response = client.delete(f"/sessions/delete_session/{session_id}")
+    assert response.status_code == expected_status
 
-
-def test_delete_session_failure(client, get_test_session_id):
-    response = client.delete(f"/sessions/delete_session/{get_test_session_id}")
-    assert response.status_code == 404
-    assert response.json() == {
-        "detail": f"Session {get_test_session_id} does not exist"
-    }
+    if expected_status == 404:
+        assert response.json() == {"detail": f"Session {session_id} does not exist"}

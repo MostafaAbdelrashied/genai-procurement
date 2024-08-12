@@ -100,8 +100,11 @@ async def update_session(
     session_id: UUID,
     form_data: dict,
     db_ops: DatabaseOperations = Depends(get_db_ops),
+    create_if_not_exists: bool = False,
 ) -> SessionDataOutput:
     try:
+        if create_if_not_exists:
+            await db_ops.upsert_session(session_id=session_id, form_data=json.dumps(form_data))
         await db_ops.update_session_data(session_id, json.dumps(form_data))
         updated_session = await db_ops.get_session_data(session_id)
 

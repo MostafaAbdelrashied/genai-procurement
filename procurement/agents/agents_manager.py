@@ -9,9 +9,11 @@ from procurement.db.db_operations import DatabaseOperations
 from procurement.models.exceptions import AgentProcessingError
 from procurement.utils.form_handler import (
     find_first_empty_field,
-    get_schema,
+    find_rule_validation,
+    read_json,
     match_if_form_updated,
     update_first_empty_field,
+    update_form_fields,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +37,7 @@ class AgentsManager:
     async def initialize(self):
         self.chat_history = await self._get_session_history()
         self.schema = await self._get_latest_form_status()
+        self.form_validation = self._get_form_validation()
 
     async def process_input(self, input_prompt: str) -> Dict[str, Any]:
         try:
@@ -84,7 +87,10 @@ class AgentsManager:
         for round_i in range(10):  # Limit to 10 iterations to prevent infinite loops
             logger.debug(f"Note-Taking Agent: Iteration {round_i + 1}")
             note_response = await self.note_taking_agent.process(
-                input_prompt, form=self.schema, messages=full_history_text
+                input_prompt,
+                form=self.schema,
+                form_val=self.form_validation,
+                messages=full_history_text,
             )
             if self.schema == note_response["schema"]:
                 logger.info("Note-Taking Agent: No new fields filled.")
@@ -93,9 +99,17 @@ class AgentsManager:
             update_first_empty_field(self.schema, note_response["schema"])
             # In case of an update, the form should be updated with the new values
             match_if_form_updated(self.schema, note_response["schema"])
+            # update the schema with the new values
+            update_form_fields(
+                self.schema,
+                condition_key="Type of contract",
+                condition_value="External",
+                actions=[("Type of Source", ""), ("Contract Limit", "")],
+            )
             if self.schema == note_response["schema"]:
                 logger.info("Note-Taking Agent: Form filled successfully.")
                 break
+
         return self.schema
 
     async def _process_specialist(
@@ -114,10 +128,13 @@ class AgentsManager:
         self, input_prompt: str, specialist_response: str
     ) -> Dict[str, Any]:
         first_empty_field = find_first_empty_field(self.schema)
+        rule_validation = find_rule_validation(self.form_validation, first_empty_field)
+
         if first_empty_field:
             conversation_response = await self.conversation_agent.process(
                 input_prompt=input_prompt,
                 first_empty_field=first_empty_field,
+                rule_validation=rule_validation,
                 specialist_response=specialist_response,
             )
             self.chat_history.append(conversation_response)
@@ -127,7 +144,7 @@ class AgentsManager:
             logger.info("All fields are filled.")
             return {
                 "type": "conversation",
-                "content": "The form was successfully filled. Submission call will be implemented in the future.",
+                "content": "The form was successfully filled.",
                 "schema": self.schema,
                 "from": "Conversation-Agent",
                 "role": "assistant",
@@ -146,12 +163,16 @@ class AgentsManager:
             for msg in messages
         ]
 
+    @staticmethod
+    def _get_form_validation() -> Dict[str, Any]:
+        return read_json(path="procurement/schemas/form_val.json")
+
     async def _get_latest_form_status(self) -> Dict[str, Any]:
         session_data = await self.db_ops.get_session_data(self.session_id)
         return (
             json.loads(session_data.form_data)
             if session_data
-            else get_schema(path="procurement/schemas/main.json")
+            else read_json(path="procurement/schemas/form.json")
         )
 
     def _convert_history_to_text(self) -> str:

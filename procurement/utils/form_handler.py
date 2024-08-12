@@ -46,6 +46,31 @@ def find_first_empty_field(input_dict: dict) -> list:
     return recursive_find(input_dict, [])
 
 
+def find_rule_validation(input_dict: dict, field_path: list) -> str:
+    """Find the rule for a field in a nested dict.
+
+    Args:
+        input_dict (dict): The nested dict.
+        field_path (list): The path to the field.
+
+    Returns:
+        str: The rule for the field.
+    """
+
+    def recursive_find(current_dict, current_path):
+        for key, value in current_dict.items():
+            new_path = current_path + [key]
+            if new_path == field_path:
+                return value
+            elif isinstance(value, dict):
+                result = recursive_find(value, new_path)
+                if result:
+                    return result
+        return None
+
+    return recursive_find(input_dict, [])
+
+
 def match_if_form_updated(schema, updated_schema):
     """Recursively update a schema with values from another schema.
 
@@ -66,7 +91,31 @@ def match_if_form_updated(schema, updated_schema):
             schema[key] = value
 
 
-def get_schema(path: str) -> dict:
+def update_form_fields(schema, condition_key, condition_value, actions):
+    """Recursively update a schema with values from another schema and modify schema based on conditions.
+
+    Args:
+        schema (dict): The original schema to be updated.
+        condition_key (str): The key whose value needs to be checked against condition_value.
+        condition_value (str): The value that condition_key should have to trigger actions.
+        actions (list of tuples): List of (new_key, new_value) to be added if condition is met.
+    """
+    keys_to_add = []
+
+    for key, value in schema.items():
+        if isinstance(value, dict):
+            update_form_fields(value, condition_key, condition_value, actions)
+        elif key == condition_key and value == condition_value:
+            keys_to_add.extend(actions)
+        elif value == "":
+            schema[key] = ""
+
+    # Update dictionary after iteration
+    for new_key, new_value in keys_to_add:
+        schema[new_key] = new_value
+
+
+def read_json(path: str) -> dict:
     """get the form fields from a json file
 
     Args:

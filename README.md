@@ -75,7 +75,7 @@ This is the backend for the Procurement Chatbot. It is a FastAPI app that uses O
     │   ├── requests.py         # Request models
     │   └── responses.py        # Response models
     ├── schemas
-    │   └── main.json           # TODO: will be replaced by LP connection
+    │   └── form.json           # TODO: will be replaced by LP connection
     ├── static                  # UI
     │   ├── script.js
     │   └── styles.css

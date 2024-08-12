@@ -3,9 +3,13 @@ from procurement.agents.base_agent import BaseAgent
 
 class ConversationAgent(BaseAgent):
     async def process(
-        self, input_prompt: str, first_empty_field: list, specialist_response: str
+        self,
+        input_prompt: str,
+        first_empty_field: list,
+        rule_validation: str,
+        specialist_response: str,
     ):
-        sys_prompt = self._get_sys_prompt(first_empty_field)
+        sys_prompt = self._get_sys_prompt(first_empty_field, rule_validation)
         response = await self._call_openai(
             model_name="gpt-4o",
             messages=[
@@ -16,8 +20,9 @@ class ConversationAgent(BaseAgent):
         )
         return response
 
-    def _get_sys_prompt(self, first_empty_field: list):
+    def _get_sys_prompt(self, first_empty_field: list, rule_validation: str) -> str:
         return self._read_prompt(
             "procurement/prompts/conversation_sys_prompt.txt",
             first_empty_field=" --> ".join(first_empty_field),
+            rule_validation=rule_validation,
         )

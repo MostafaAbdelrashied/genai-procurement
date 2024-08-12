@@ -25,81 +25,75 @@ def test_short_chat_with_gpt(client, chat_url):
         (
             {"message": "Hello"},
             {
-                "1. Initiating a Sourcing Request": {
-                    "New Request (Yes/No)": "",
+                "General Information": {
                     "Title": "",
                     "Detailed description": {
                         "Business need": "",
                         "Project scope": "",
-                        "Expected deliverables": "",
-                        "Impact if not approved": "",
                         "Type of contract": "",
-                        "Cost": "",
                     },
                 },
-            },
-        ),
-        (
-            {"message": "I need to initiate a new procurement request"},
-            {
-                "1. Initiating a Sourcing Request": {
-                    "New Request (Yes/No)": "Yes",
-                    "Title": "",
-                    "Detailed description": {
-                        "Business need": "",
-                        "Project scope": "",
-                        "Expected deliverables": "",
-                        "Impact if not approved": "",
-                        "Type of contract": "",
-                        "Cost": "",
-                    },
+                "Financial Details": {
+                    "Start Date": "",
+                    "End Date": "",
+                    "Expected Amount": "",
+                    "Currency": "",
                 },
             },
         ),
         (
             {
-                "message": "Title is Dashboard. Business need is essential, scope is internal, expected delivery is software, impact is outstanding, contract is grant, cost is 100k€"
+                "message": "I need to initiate a new procurement request with title Dashboard"
             },
             {
-                "1. Initiating a Sourcing Request": {
-                    "New Request (Yes/No)": "Yes",
+                "General Information": {
+                    "Title": "Dashboard",
+                    "Detailed description": {
+                        "Business need": "",
+                        "Project scope": "",
+                        "Type of contract": "",
+                    },
+                },
+                "Financial Details": {
+                    "Start Date": "",
+                    "End Date": "",
+                    "Expected Amount": "",
+                    "Currency": "",
+                },
+            },
+        ),
+        (
+            {
+                "message": "Business need is 'essential', scope is 'internal', type of contract is internal"
+            },
+            {
+                "General Information": {
                     "Title": "Dashboard",
                     "Detailed description": {
                         "Business need": "essential",
                         "Project scope": "internal",
-                        "Expected deliverables": "software",
-                        "Impact if not approved": "outstanding",
-                        "Type of contract": "grant",
-                        "Cost": "100k€",
+                        "Type of contract": "internal",
                     },
-                }
+                },
+                "Financial Details": {
+                    "Start Date": "",
+                    "End Date": "",
+                    "Expected Amount": "",
+                    "Currency": "",
+                },
             },
         ),
         (
             {
-                "message": "Category is Applications, start date is 01.01.2025, end date is 01.01.2026, expected amount is 120k€"
+                "message": "Start date is 01.01.2025, end date is 01.01.2026, expected amount is 120000, currency is 'EUR'"
             },
             {
-                "2. Category Selection and Financial Details": {
-                    "Category": "Applications",
+                "Financial Details": {
                     "Start Date": "01.01.2025",
                     "End Date": "01.01.2026",
-                    "Expected Amount": "120k€",
-                }
-            },
-        ),
-        (
-            {
-                "message": "Deal presenter is Mike Johnson, Available funds is 1 million, funding type is internal, cost center is G8GH, GCRS Company Details is Salesforce"
-            },
-            {
-                "3. Deal Financials and Duration": {
-                    "Deal Presenter": "Mike Johnson",
-                    "Available Funds": "1 million",
-                    "Funding Type": "internal",
-                    "Cost Center": "G8GH",
-                    "GCRS Company Details": "Salesforce",
-                }
+                    "Expected Amount": "120000",
+                    "Currency": "EUR",
+                },
             },
         ),
     ],
@@ -129,6 +123,6 @@ def test_field_update_chat_with_gpt(client, chat_url):
     chat_output = response.json()
     assert_valid_chat_output(chat_output)
     assert (
-        chat_output["form"]["1. Initiating a Sourcing Request"]["Title"]
+        chat_output["form"]["General Information"]["Title"]
         == "Dashboard 2.0"
     )

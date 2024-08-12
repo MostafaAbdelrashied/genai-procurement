@@ -1,20 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const chatMessages = document.getElementById('chat-messages');
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    const schemaContent = document.getElementById('schema-content');
-    const sessionWindow = document.getElementById('session-window');
-    const sessionNameInput = document.getElementById('session-name');
-    const createSessionButton = document.getElementById('create-session-button');
+    const elements = {
+        chatMessages: document.getElementById('chat-messages'),
+        userInput: document.getElementById('user-input'),
+        sendButton: document.getElementById('send-button'),
+        procurementForm: document.getElementById('procurement-form'),
+        saveFormButton: document.getElementById('save-form-button'),
+        formContainer: document.getElementById('form-container'),
+        sessionWindow: document.getElementById('session-window'),
+        sessionNameInput: document.getElementById('session-name'),
+        createSessionButton: document.getElementById('create-session-button'),
+        contractTypeSelect: document.getElementById('contract-type'),
+        externalSourceType: document.getElementById('external-source-type'),
+        externalContractLimit: document.getElementById('external-contract-limit'),
+        refreshFormButton: document.getElementById('refresh-form-button')
+    };
 
-    let menuState = {};
     let sessionUUID = null;
 
-    // Hide chat interface initially
-    [chatMessages, userInput, sendButton].forEach(el => el.style.display = 'none');
-
     const createSession = async () => {
-        const name = sessionNameInput.value.trim();
+        const name = elements.sessionNameInput.value.trim();
         if (!name) return;
 
         try {
@@ -24,41 +28,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const { uuid } = await response.json();
             sessionUUID = uuid;
 
-            // Update UI
-            [sessionNameInput, createSessionButton].forEach(el => el.style.display = 'none');
-            const sessionInfoDisplay = document.createElement('div');
-            sessionInfoDisplay.innerHTML = `
-                <div>Text: ${name}</div>
-                <div>UUID: ${sessionUUID}</div>
-            `;
-            sessionInfoDisplay.classList.add('session-info-display');
-            sessionWindow.appendChild(sessionInfoDisplay);
-
-            // Show chat interface
-            [chatMessages, userInput, sendButton].forEach(el => el.style.display = 'block');
+            updateSessionUI(name, uuid);
+            showChatInterface();
+            await fetchAndUpdateForm();
         } catch (error) {
             console.error('Error:', error);
             addMessage('Sorry, there was an error creating the session.', false);
         }
     };
 
-    createSessionButton.addEventListener('click', createSession);
-    sessionNameInput.addEventListener('keypress', event => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            createSession();
-        }
-    });
+    const updateSessionUI = (name, uuid) => {
+        elements.sessionNameInput.style.display = 'none';
+        elements.createSessionButton.style.display = 'none';
+        const sessionInfoDisplay = document.createElement('div');
+        sessionInfoDisplay.innerHTML = `
+            <div>Text: ${name}</div>
+            <div>UUID: ${uuid}</div>
+        `;
+        sessionInfoDisplay.classList.add('session-info-display');
+        elements.sessionWindow.appendChild(sessionInfoDisplay);
+    };
 
-    function addMessage(message, isUser = false) {
+    const showChatInterface = () => {
+        [elements.chatMessages, elements.userInput, elements.sendButton, elements.formContainer].forEach(el => el.style.display = 'block');
+    };
+
+    const addMessage = (message, isUser = false) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
         messageElement.textContent = message;
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+        elements.chatMessages.appendChild(messageElement);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    };
 
-    function addLoadingIndicator() {
+    const addLoadingIndicator = () => {
         const loadingWrapper = document.createElement('div');
         loadingWrapper.innerHTML = `
             <div class="loading-typing">
@@ -69,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="loading-timer"></span>
         `;
         loadingWrapper.classList.add('bot-message', 'loading-wrapper');
-        chatMessages.appendChild(loadingWrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        elements.chatMessages.appendChild(loadingWrapper);
+        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
 
         const timerElement = loadingWrapper.querySelector('.loading-timer');
         const startTime = Date.now();
@@ -80,91 +83,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
 
         return { loadingElement: loadingWrapper, stopTimer: () => clearInterval(timerInterval) };
-    }
+    };
 
-    function updateSchema(schema) {
-        schemaContent.innerHTML = '';
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const [day, month, year] = dateString.split('.');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    };
 
-        function createSchemaItem(key, value, path = '') {
-            const schemaItem = document.createElement('div');
-            schemaItem.classList.add('schema-item');
+    const fetchAndUpdateForm = async () => {
+        if (!sessionUUID) return;
 
-            const header = document.createElement('div');
-            header.classList.add('schema-header');
-            schemaItem.appendChild(header);
+        try {
+            const response = await fetch(`/sessions/get_session_data/${sessionUUID}`);
+            if (!response.ok) throw new Error('Failed to fetch form data from server');
 
-            const indicator = document.createElement('span');
-            indicator.classList.add('indicator');
-            header.appendChild(indicator);
-
-            const title = document.createElement('h3');
-            title.textContent = key;
-            header.appendChild(title);
-
-            if (typeof value === 'object' && value !== null) {
-                title.classList.add('collapsible');
-                const content = document.createElement('div');
-                content.classList.add('schema-content');
-
-                let filledCount = 0;
-                const totalCount = Object.keys(value).length;
-
-                Object.entries(value).forEach(([subKey, subValue]) => {
-                    const subItem = createSchemaItem(subKey, subValue, `${path}${key}.`);
-                    content.appendChild(subItem);
-                    if (subItem.querySelector('.indicator').classList.contains('filled')) {
-                        filledCount++;
-                    }
-                });
-
-                schemaItem.appendChild(content);
-
-                const counter = document.createElement('span');
-                counter.classList.add('counter');
-                counter.textContent = `(${filledCount}/${totalCount})`;
-                header.appendChild(counter);
-
-                const arrow = document.createElement('span');
-                arrow.classList.add('arrow');
-                arrow.innerHTML = '&#9660;';
-                header.appendChild(arrow);
-
-                const itemPath = `${path}${key}`;
-                if (menuState[itemPath] === undefined) {
-                    menuState[itemPath] = false;
-                }
-
-                content.style.display = menuState[itemPath] ? 'block' : 'none';
-                if (menuState[itemPath]) header.classList.add('active');
-
-                header.addEventListener('click', () => {
-                    header.classList.toggle('active');
-                    content.style.display = content.style.display === 'none' ? 'block' : 'none';
-                    menuState[itemPath] = !menuState[itemPath];
-                });
-
-                indicator.classList.add(filledCount === totalCount ? 'filled' : 'unfilled');
-            } else {
-                const content = document.createElement('p');
-                content.textContent = value;
-                schemaItem.appendChild(content);
-                indicator.classList.add(value ? 'filled' : 'unfilled');
-            }
-
-            return schemaItem;
+            const data = await response.json();
+            updateForm(data.form_data);
+        } catch (error) {
+            console.error('Error fetching form data:', error);
         }
+    };
 
-        Object.entries(schema).forEach(([key, value]) => {
-            schemaContent.appendChild(createSchemaItem(key, value));
-        });
-    }
+    const updateForm = (formData) => {
+        const generalInfo = formData['General Information'];
+        const financialDetails = formData['Financial Details'];
+    
+        document.getElementById('title').value = generalInfo.Title || '';
+        document.getElementById('business-need').value = generalInfo['Detailed description']['Business need'] || '';
+        document.getElementById('project-scope').value = generalInfo['Detailed description']['Project scope'] || '';
+    
+        const contractType = generalInfo['Detailed description']['Type of contract'];
+        const contractTypeSelect = document.getElementById('contract-type');
+        if (contractTypeSelect) {
+            contractTypeSelect.value = contractType;
+            const isExternal = contractType === 'external';
+            document.getElementById('external-source-type').style.display = isExternal ? 'block' : 'none';
+            document.getElementById('external-contract-limit').style.display = isExternal ? 'block' : 'none';
+        }
+    
+        document.getElementById('start-date').value = formatDate(financialDetails['Start Date']);
+        document.getElementById('end-date').value = formatDate(financialDetails['End Date']);
+        document.getElementById('expected-amount').value = financialDetails['Expected Amount'] || '';
+        document.getElementById('currency').value = financialDetails['Currency'] || '';
+    };
 
-    async function sendMessage() {
-        const message = userInput.value.trim();
+    const sendMessage = async () => {
+        const message = elements.userInput.value.trim();
         if (!message || !sessionUUID) return;
 
         addMessage(message, true);
-        userInput.value = '';
+        elements.userInput.value = '';
 
         const { loadingElement, stopTimer } = addLoadingIndicator();
 
@@ -177,9 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) throw new Error('Network response was not ok');
 
-            const { response: botResponse, form } = await response.json();
+            const { response: botResponse } = await response.json();
             addMessage(botResponse);
-            updateSchema(form);
+
+            await fetchAndUpdateForm();
         } catch (error) {
             console.error('Error:', error);
             addMessage('Sorry, there was an error processing your message.');
@@ -187,10 +157,118 @@ document.addEventListener('DOMContentLoaded', () => {
             stopTimer();
             loadingElement.remove();
         }
-    }
+    };
 
-    sendButton.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', event => {
+    const sendFormUpdate = async (formData) => {
+        if (!sessionUUID) {
+            throw new Error('No active session');
+        }
+
+        try {
+            const response = await fetch(`/sessions/update_session_form/${sessionUUID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                body: JSON.stringify(formData),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to update form on server');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating form:', error);
+            throw error;
+        }
+    };
+
+    const validateForm = () => {
+        let isValid = true;
+        const requiredFields = [
+            'title', 'business-need', 'project-scope', 'contract-type',
+            'start-date', 'end-date', 'expected-amount', 'currency'
+        ];
+
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field);
+            if (!element.value) {
+                isValid = false;
+                element.classList.add('invalid');
+            } else {
+                element.classList.remove('invalid');
+            }
+        });
+
+        if (elements.contractTypeSelect.value === 'external') {
+            const sourceType = document.getElementById('source-type');
+            if (!sourceType.value) {
+                isValid = false;
+                sourceType.classList.add('invalid');
+            } else {
+                sourceType.classList.remove('invalid');
+            }
+
+            const contractLimits = document.getElementsByName('contract-limit');
+            const isAnyContractLimitSelected = Array.from(contractLimits).some(radio => radio.checked);
+            if (!isAnyContractLimitSelected) {
+                isValid = false;
+                elements.externalContractLimit.classList.add('invalid');
+            } else {
+                elements.externalContractLimit.classList.remove('invalid');
+            }
+        }
+
+        return isValid;
+    };
+
+    elements.createSessionButton.addEventListener('click', createSession);
+    elements.sessionNameInput.addEventListener('keypress', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            createSession();
+        }
+    });
+    elements.refreshFormButton.addEventListener('click', fetchAndUpdateForm);
+    elements.sendButton.addEventListener('click', sendMessage);
+    elements.userInput.addEventListener('keypress', event => {
         if (event.key === 'Enter') sendMessage();
+    });
+
+    elements.procurementForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(elements.procurementForm);
+        const data = Object.fromEntries(formData);
+
+        try {
+            await sendFormUpdate(data);
+            addMessage('Form saved successfully!', false);
+        } catch (error) {
+            addMessage('Error saving form. Please try again.', false);
+        }
+    });
+
+    elements.saveFormButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+        if (validateForm()) {
+            const formData = new FormData(elements.procurementForm);
+            const data = Object.fromEntries(formData);
+
+            try {
+                await sendFormUpdate(data);
+                addMessage('Form saved successfully!', false);
+            } catch (error) {
+                addMessage(`Error saving form: ${error.message}`, false);
+            }
+        } else {
+            addMessage('Please fill in all required fields.', false);
+        }
+    });
+
+    elements.contractTypeSelect.addEventListener('change', event => {
+        const isExternal = event.target.value === 'external';
+        elements.externalSourceType.style.display = isExternal ? 'block' : 'none';
+        elements.externalContractLimit.style.display = isExternal ? 'block' : 'none';
     });
 });

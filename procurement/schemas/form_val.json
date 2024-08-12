@@ -1,0 +1,18 @@
+{
+  "General Information": {
+    "Title": "min 3 chars, max 50 characters",
+    "Detailed description": {
+      "Business need": "min 20 chars, max 200 chars",
+      "Project scope": "radio button, limited to 1 choice -> limited or unlimited",
+      "Type of contract": "drop-down list -> internal, external, grant, ngo",
+      "Type of Source": "drop-down list -> Software, Auditing, Trading",
+      "Contract Limit": "radio button, limited to 1 choice -> Limited or Unlimited"
+    }
+  },
+  "Financial Details": {
+    "Start Date": "date picker, before End Date and after today, it should be iso format e.g. 31-12-2021",
+    "End Date": "date picker, after Start Date, it should be iso format e.g. 31-12-2021",
+    "Expected Amount": "only numbers, min 0, max 1000000",
+    "Currency": "drop-down list -> USD, EUR, GBP"
+  }
+}

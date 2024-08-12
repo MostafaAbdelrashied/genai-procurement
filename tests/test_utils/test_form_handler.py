@@ -3,7 +3,7 @@ import tempfile
 
 from procurement.utils.form_handler import (
     find_first_empty_field,
-    get_schema,
+    read_json,
     match_if_form_updated,
     update_first_empty_field,
 )
@@ -66,12 +66,12 @@ def test_match_if_form_updated_empty():
     }
 
 
-def test_get_schema():
+def test_read_json():
     test_schema = {"name": "", "age": 0, "city": ""}
 
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
         json.dump(test_schema, temp_file)
         temp_file_path = temp_file.name
 
-    result = get_schema(temp_file_path)
+    result = read_json(temp_file_path)
     assert result == test_schema
