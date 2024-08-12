@@ -97,8 +97,6 @@ class AgentsManager:
                 break
             # Only update the schema if the note-taking agent has filled in a new field
             update_first_empty_field(self.schema, note_response["schema"])
-            # In case of an update, the form should be updated with the new values
-            match_if_form_updated(self.schema, note_response["schema"])
             # update the schema with the new values
             update_form_fields(
                 self.schema,
@@ -106,6 +104,8 @@ class AgentsManager:
                 condition_value="External",
                 actions=[("Type of Source", ""), ("Contract Limit", "")],
             )
+            # In case of an update, the form should be updated with the new values
+            match_if_form_updated(self.schema, note_response["schema"])
             if self.schema == note_response["schema"]:
                 logger.info("Note-Taking Agent: Form filled successfully.")
                 break

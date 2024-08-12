@@ -7,8 +7,34 @@ from loguru import logger
 from procurement.db.db_operations import DatabaseOperations, get_db_ops
 from procurement.models.exceptions import DatabaseOperationError
 from procurement.models.responses import MessageDataOutput, SessionDataOutput
+from procurement.utils.form_handler import read_json
 
 router = APIRouter()
+
+
+@router.post(
+    "/create_session",
+    response_model=SessionDataOutput,
+    description="Create a new session in the database",
+)
+async def create_session(
+    session_id: UUID,
+    db_ops: DatabaseOperations = Depends(get_db_ops),
+) -> SessionDataOutput:
+    try:
+        await db_ops.create_session(
+            session_id, json.dumps(read_json(path="procurement/schemas/form.json"))
+        )
+        session_data = await db_ops.get_session_data(session_id)
+        return SessionDataOutput(
+            session_id=session_data.session_id,
+            form_data=json.loads(session_data.form_data),
+            created_at=session_data.created_at,
+            last_updated_at=session_data.last_updated_at,
+        )
+    except DatabaseOperationError as e:
+        logger.error(f"Database error while creating session: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get(
@@ -104,7 +130,9 @@ async def update_session(
 ) -> SessionDataOutput:
     try:
         if create_if_not_exists:
-            await db_ops.upsert_session(session_id=session_id, form_data=json.dumps(form_data))
+            await db_ops.upsert_session(
+                session_id=session_id, form_data=json.dumps(form_data)
+            )
         await db_ops.update_session_data(session_id, json.dumps(form_data))
         updated_session = await db_ops.get_session_data(session_id)
 

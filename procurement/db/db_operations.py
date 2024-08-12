@@ -28,6 +28,14 @@ class DatabaseOperations:
             await self.db.rollback()
             raise DatabaseOperationError(f"Database operation failed: {str(e)}")
 
+    async def create_session(self, session_id: UUID, form_data: dict) -> UUID:
+        async def operation():
+            stmt = insert(Session).values(session_id=session_id, form_data=form_data)
+            stmt = stmt.on_conflict_do_nothing(index_elements=["session_id"])
+            await self.db.execute(stmt)
+
+        await self._execute_with_error_handling(operation)
+
     async def upsert_session(self, session_id: UUID, form_data: dict) -> None:
         async def operation():
             stmt = insert(Session).values(session_id=session_id, form_data=form_data)

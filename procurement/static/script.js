@@ -22,20 +22,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!name) return;
 
         try {
-            const response = await fetch(`/uuid/convert-string/${encodeURIComponent(name)}`);
-            if (!response.ok) throw new Error('Failed to convert string to UUID');
-
-            const { uuid } = await response.json();
+            // Generate UUID from the name
+            const uuidResponse = await fetch(`/uuid/convert-string/${encodeURIComponent(name)}`);
+            if (!uuidResponse.ok) throw new Error('Failed to convert string to UUID');
+            const { uuid } = await uuidResponse.json();
             sessionUUID = uuid;
+
+            // Create the session in the database
+            const createSessionResponse = await fetch('/sessions/create_session?session_id=' + uuid, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!createSessionResponse.ok) throw new Error('Failed to create session in database');
 
             updateSessionUI(name, uuid);
             showChatInterface();
+
+            // Now that the session is created, we can safely fetch the form
             await fetchAndUpdateForm();
         } catch (error) {
             console.error('Error:', error);
-            addMessage('Sorry, there was an error creating the session.', false);
+            addMessage(`Error creating session: ${error.message}`, false);
         }
     };
+
 
     const updateSessionUI = (name, uuid) => {
         elements.sessionNameInput.style.display = 'none';
@@ -108,11 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateForm = (formData) => {
         const generalInfo = formData['General Information'];
         const financialDetails = formData['Financial Details'];
-    
+
         document.getElementById('title').value = generalInfo.Title || '';
         document.getElementById('business-need').value = generalInfo['Detailed description']['Business need'] || '';
         document.getElementById('project-scope').value = generalInfo['Detailed description']['Project scope'] || '';
-    
+
         const contractType = generalInfo['Detailed description']['Type of contract'];
         const contractTypeSelect = document.getElementById('contract-type');
         if (contractTypeSelect) {
@@ -121,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('external-source-type').style.display = isExternal ? 'block' : 'none';
             document.getElementById('external-contract-limit').style.display = isExternal ? 'block' : 'none';
         }
-    
+
         document.getElementById('start-date').value = formatDate(financialDetails['Start Date']);
         document.getElementById('end-date').value = formatDate(financialDetails['End Date']);
         document.getElementById('expected-amount').value = financialDetails['Expected Amount'] || '';
