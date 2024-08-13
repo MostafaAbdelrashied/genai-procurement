@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenAI Platform Demo</title>
+    <title>GenAI Procurement</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 </head>
 
 <body>
     <main class="main-container">
         <section class="chat-container">
-            <h1>GenAI Platform</h1>
+            <h1>GenAI Procurement Chatbot</h1>
             <p>This is a demo for testing purposes</p>
 
             <div id="session-window" class="session-window">
@@ -30,7 +30,7 @@
 
         <section id="form-container" class="form-container" style="display: none;">
             <div class="form-header">
-                <h2>Sourcing Request Form</h2>
+                <h2>Procurement Form</h2>
                 <button id="refresh-form-button" title="Refresh form data">↻</button>
             </div>
             <form id="procurement-form">
@@ -61,23 +61,6 @@
                     </select>
                 </div>
 
-                <div id="external-source-type" class="form-group" style="display: none;">
-                    <label for="source-type">Type of Source:</label>
-                    <select id="source-type" name="source-type">
-                        <option value="">Select...</option>
-                        <option value="software">Software</option>
-                        <option value="auditing">Auditing</option>
-                        <option value="trading">Trading</option>
-                    </select>
-                </div>
-
-                <div id="external-contract-limit" class="form-group" style="display: none;">
-                    <label>Contract Limit:</label>
-                    <input type="radio" id="limited" name="contract-limit" value="limited">
-                    <label for="limited">Limited</label>
-                    <input type="radio" id="unlimited" name="contract-limit" value="unlimited">
-                    <label for="unlimited">Unlimited</label>
-                </div>
 
                 <h3>Financial Details</h3>
                 <div class="form-group">
@@ -91,7 +74,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="expected-amount">Expected Amount:</label>
+                    <label for="expected-amount">Amount:</label>
                     <input type="number" id="expected-amount" name="expected-amount" required>
                 </div>
 

@@ -1,9 +1,11 @@
-import pytest
 import time
+
+import pytest
+
 from tests.test_endpoints import client
 from tests.test_endpoints.fixtures.chat_fixture import (
-    chat_url,
     assert_valid_chat_output,
+    chat_url,
 )
 
 
@@ -25,19 +27,19 @@ def test_short_chat_with_gpt(client, chat_url):
         (
             {"message": "Hello"},
             {
-                "General Information": {
-                    "Title": "",
-                    "Detailed description": {
-                        "Business need": "",
-                        "Project scope": "",
-                        "Type of contract": "",
+                "general_information": {
+                    "title": "",
+                    "detailed_description": {
+                        "business_need": "",
+                        "project_scope": "",
+                        "type_of_contract": "",
                     },
                 },
-                "Financial Details": {
-                    "Start Date": "",
-                    "End Date": "",
-                    "Expected Amount": "",
-                    "Currency": "",
+                "financial_details": {
+                    "start_date": "",
+                    "end_date": "",
+                    "expected_amount": "",
+                    "currency": "",
                 },
             },
         ),
@@ -46,40 +48,40 @@ def test_short_chat_with_gpt(client, chat_url):
                 "message": "I need to initiate a new procurement request with title Dashboard"
             },
             {
-                "General Information": {
-                    "Title": "Dashboard",
-                    "Detailed description": {
-                        "Business need": "",
-                        "Project scope": "",
-                        "Type of contract": "",
+                "general_information": {
+                    "title": "Dashboard",
+                    "detailed_description": {
+                        "business_need": "",
+                        "project_scope": "",
+                        "type_of_contract": "",
                     },
                 },
-                "Financial Details": {
-                    "Start Date": "",
-                    "End Date": "",
-                    "Expected Amount": "",
-                    "Currency": "",
+                "financial_details": {
+                    "start_date": "",
+                    "end_date": "",
+                    "expected_amount": "",
+                    "currency": "",
                 },
             },
         ),
         (
             {
-                "message": "Business need is 'essential', scope is 'internal', type of contract is internal"
+                "message": "business_need is 'essential', scope is 'internal', type of contract is internal"
             },
             {
-                "General Information": {
-                    "Title": "Dashboard",
-                    "Detailed description": {
-                        "Business need": "essential",
-                        "Project scope": "internal",
-                        "Type of contract": "internal",
+                "general_information": {
+                    "title": "Dashboard",
+                    "detailed_description": {
+                        "business_need": "essential",
+                        "project_scope": "internal",
+                        "type_of_contract": "internal",
                     },
                 },
-                "Financial Details": {
-                    "Start Date": "",
-                    "End Date": "",
-                    "Expected Amount": "",
-                    "Currency": "",
+                "financial_details": {
+                    "start_date": "",
+                    "end_date": "",
+                    "expected_amount": "",
+                    "currency": "",
                 },
             },
         ),
@@ -88,11 +90,11 @@ def test_short_chat_with_gpt(client, chat_url):
                 "message": "Start date is 01.01.2025, end date is 01.01.2026, expected amount is 120000, currency is 'EUR'"
             },
             {
-                "Financial Details": {
-                    "Start Date": "01.01.2025",
-                    "End Date": "01.01.2026",
-                    "Expected Amount": "120000",
-                    "Currency": "EUR",
+                "financial_details": {
+                    "start_date": "01.01.2025",
+                    "end_date": "01.01.2026",
+                    "expected_amount": "120000",
+                    "currency": "EUR",
                 },
             },
         ),
@@ -122,7 +124,4 @@ def test_field_update_chat_with_gpt(client, chat_url):
 
     chat_output = response.json()
     assert_valid_chat_output(chat_output)
-    assert (
-        chat_output["form"]["General Information"]["Title"]
-        == "Dashboard 2.0"
-    )
+    assert chat_output["form"]["general_information"]["title"] == "Dashboard 2.0"

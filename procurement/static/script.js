@@ -10,10 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionNameInput: document.getElementById('session-name'),
         createSessionButton: document.getElementById('create-session-button'),
         contractType: document.getElementById('contract-type'),
-        sourceType: document.getElementById('external-source-type'),
-        contractLimit: document.getElementById('external-contract-limit'),
         refreshFormButton: document.getElementById('refresh-form-button'),
-
         title: document.getElementById('title'),
         businessNeed: document.getElementById('business-need'),
         projectScope: document.getElementById('project-scope'),
@@ -27,20 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Constants for URLs
     const URLS = {
-        UUID_CONVERT: (name) => `/uuid/convert-string/${encodeURIComponent(name)}`,
-        CREATE_SESSION: (uuid) => `/sessions/create_session?session_id=${uuid}`,
-        GET_SESSION_DATA: (uuid) => `/sessions/get_session_data/${uuid}`,
-        CHAT_MESSAGE: (sessionUUID) => `chat/message?session_id=${sessionUUID}`,
-        UPDATE_SESSION_FORM: (sessionUUID) => `/sessions/update_session_form/${sessionUUID}`,
+        UUID_CONVERT: name => `/uuid/convert-string/${encodeURIComponent(name)}`,
+        CREATE_SESSION: uuid => `/sessions/create_session?session_id=${uuid}`,
+        GET_SESSION_DATA: uuid => `/sessions/get_session_data/${uuid}`,
+        CHAT_MESSAGE: uuid => `/chat/message?session_id=${uuid}`,
+        UPDATE_SESSION_FORM: uuid => `/sessions/update_session_form/${uuid}`,
     };
 
-    // Error handling and user feedback
-    const showError = (message) => {
+    // UI Update and Helper Functions
+
+    const showError = message => {
         console.error(message);
-        addMessage(elements.chatMessages, `Error: ${message}`, false);
+        displayMessage(elements.chatMessages, `Error: ${message}`, false);
     };
 
-    // Helper for fetching and error handling
     const fetchWithErrorHandling = async (url, options) => {
         try {
             const response = await fetch(url, options);
@@ -55,18 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Helper functions
-    const formatDate = (dateString) => {
+    const getFormData = form => Object.fromEntries(new FormData(form));
+
+    const formatDate = dateString => {
         if (!dateString) return '';
-        const [year, month, day] = dateString.split('-');
-        if (!day || !month || !year) return '';  // Ensure valid date parts
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        const parts = dateString.split('-');
+        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : '';
     };
 
-    const getFormData = (form) => Object.fromEntries(new FormData(form));
-
-    // Updating UI elements
-    const updateSessionUI = (elements, name, uuid) => {
+    const updateSessionUI = (name, uuid) => {
         elements.sessionNameInput.style.display = 'none';
         elements.createSessionButton.style.display = 'none';
         const sessionInfoDisplay = document.createElement('div');
@@ -78,13 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.sessionWindow.appendChild(sessionInfoDisplay);
     };
 
-    const showChatInterface = (elements) => {
-        ['chatMessages', 'userInput', 'sendButton', 'formContainer'].forEach((id) => {
+    const showChatInterface = () => {
+        ['chatMessages', 'userInput', 'sendButton', 'formContainer'].forEach(id => {
             elements[id].style.display = 'block';
         });
     };
 
-    const addMessage = (chatMessages, message, isUser = false) => {
+    const displayMessage = (chatMessages, message, isUser = false) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
         messageElement.textContent = message;
@@ -92,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    const addLoadingIndicator = (chatMessages) => {
+    const addLoadingIndicator = chatMessages => {
         const loadingWrapper = document.createElement('div');
         loadingWrapper.innerHTML = `
             <div class="loading-typing">
@@ -116,43 +110,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return { loadingElement: loadingWrapper, stopTimer: () => clearInterval(timerInterval) };
     };
 
-    const updateForm = (elements, formData) => {
-        const {
-            title = '',
-            ['business-need']: businessNeed = '',
-            ['project-scope']: projectScope = '',
-            ['contract-type']: contractType = '',
-            ['source-type']: sourceType = '',
-            ['contract-limit']: contractLimit = '',
-            ['start-date']: startDate = '',
-            ['end-date']: endDate = '',
-            ['expected-amount']: expectedAmount = '',
-            currency = ''
-        } = formData;
 
-        elements.title.value = title;
-        elements.businessNeed.value = businessNeed;
-        elements.projectScope.value = projectScope;
-        elements.contractType.value = contractType;
+    const updateForm = formData => {
+        const generalInfo = formData["general_information"] || {};
+        const financialDetails = formData["financial_details"] || {};
+        const detailedDescription = generalInfo["detailed_description"] || {};
 
-        const isExternal = contractType === 'external';
-        elements.sourceType.style.display = isExternal ? 'block' : 'none';
-        elements.contractLimit.style.display = isExternal ? 'block' : 'none';
+        elements.title.value = generalInfo.title || '';
+        elements.businessNeed.value = detailedDescription["business_need"] || '';
+        elements.projectScope.value = detailedDescription["project_scope"] || '';
+        elements.contractType.value = detailedDescription["type_of_contract"] || '';
 
-        if (isExternal) {
-            elements.sourceType.querySelector('select').value = sourceType;
-            elements.contractLimit.querySelectorAll('input[type="radio"]').forEach((radio) => {
-                radio.checked = radio.value.toLowerCase() === contractLimit.toLowerCase();
-            });
-        }
-
-        elements.startDate.value = formatDate(startDate);
-        elements.endDate.value = formatDate(endDate);
-        elements.expectedAmount.value = expectedAmount;
-        elements.currency.value = currency;
+        elements.startDate.value = formatDate(financialDetails["start_date"]);
+        elements.endDate.value = formatDate(financialDetails["end_date"]);
+        elements.expectedAmount.value = financialDetails["expected_amount"] || '';
+        elements.currency.value = financialDetails["currency"] || '';
     };
 
-    const validateForm = (elements) => {
+    const validateForm = () => {
         let isValid = true;
         const requiredFields = [
             elements.title,
@@ -165,18 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.currency,
         ];
 
-        if (elements.contractType.value === 'external') {
-            requiredFields.push(elements.sourceType.querySelector('select'));
-            const contractLimitSelected = [...elements.contractLimit.querySelectorAll('input[type="radio"]')].some(
-                (radio) => radio.checked
-            );
-            if (!contractLimitSelected) {
-                elements.contractLimit.classList.add('invalid');
-                isValid = false;
-            }
-        }
 
-        requiredFields.forEach((field) => {
+        requiredFields.forEach(field => {
             if (!field.value) {
                 isValid = false;
                 field.classList.add('invalid');
@@ -189,15 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchAndUpdateForm = async () => {
-        if (!sessionUUID) {
-            // showError('No active session');
-            return;
-        }
+        if (!sessionUUID) return;
 
         try {
             const data = await fetchWithErrorHandling(URLS.GET_SESSION_DATA(sessionUUID));
-            updateForm(elements, data.form_data);
-            // console.log('Form updated with data:', data.form_data);
+            updateForm(data.form_data);
         } catch (error) {
             showError('Error fetching form data');
         }
@@ -219,9 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            updateSessionUI(elements, name, uuid);
-            showChatInterface(elements);
-            await fetchAndUpdateForm(); // Fetch and update form data after creating session
+            updateSessionUI(name, uuid);
+            showChatInterface();
+            await fetchAndUpdateForm();
         } catch (error) {
             showError(`Error creating session: ${error.message}`);
         }
@@ -231,20 +192,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const message = elements.userInput.value.trim();
         if (!message || !sessionUUID) return;
 
-        addMessage(elements.chatMessages, message, true);
+        displayMessage(elements.chatMessages, message, true);
         elements.userInput.value = '';
 
         const { loadingElement, stopTimer } = addLoadingIndicator(elements.chatMessages);
 
         try {
-            const { response: botResponse } = await fetchWithErrorHandling(URLS.CHAT_MESSAGE(sessionUUID), {
+            const { response } = await fetchWithErrorHandling(URLS.CHAT_MESSAGE(sessionUUID), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message }),
             });
 
-            addMessage(elements.chatMessages, botResponse);
-            await fetchAndUpdateForm(); // Ensure form update after chat interaction response
+            displayMessage(elements.chatMessages, response);
+            await fetchAndUpdateForm();
         } catch (error) {
             showError('Error processing your message');
         } finally {
@@ -253,11 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const sendFormUpdate = async (formData) => {
-        if (!sessionUUID) {
-            // showError('No active session');
-            return;
-        }
+    const sendFormUpdate = async formData => {
+        if (!sessionUUID) return;
 
         try {
             await fetchWithErrorHandling(URLS.UPDATE_SESSION_FORM(sessionUUID), {
@@ -265,21 +223,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-            // console.log('Form data sent to server:', formData);
-            await fetchAndUpdateForm(); // Fetch updated data from server
+            await fetchAndUpdateForm();
         } catch (error) {
             showError('Error updating form');
         }
     };
 
-    const handleFormChange = async (event) => {
-        const formData = getFormData(elements.procurementForm);
+    const handleFormChange = async event => {
+        const formData = {
+            general_information: {
+                title: elements.title.value,
+                detailed_description: {
+                    business_need: elements.businessNeed.value,
+                    project_scope: elements.projectScope.value,
+                    type_of_contract: elements.contractType.value
+                }
+            },
+            financial_details: {
+                start_date: elements.startDate.value,
+                end_date: elements.endDate.value,
+                expected_amount: elements.expectedAmount.value,
+                currency: elements.currency.value
+            }
+        };
         await sendFormUpdate(formData);
     };
 
     // Event Listeners
     elements.createSessionButton.addEventListener('click', createSession);
-    elements.sessionNameInput.addEventListener('keypress', (event) => {
+
+    elements.sessionNameInput.addEventListener('keypress', event => {
         if (event.key === 'Enter') {
             event.preventDefault();
             createSession();
@@ -287,15 +260,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.sendButton.addEventListener('click', sendMessage);
-    elements.userInput.addEventListener('keypress', (event) => {
+    elements.userInput.addEventListener('keypress', event => {
         if (event.key === 'Enter') sendMessage();
     });
 
     elements.refreshFormButton.addEventListener('click', fetchAndUpdateForm);
 
-    elements.procurementForm.addEventListener('submit', async (event) => {
+    elements.procurementForm.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!validateForm(elements)) {
+        if (!validateForm()) {
             showError('Form validation failed. Please fill out all required fields.');
             return;
         }
@@ -304,9 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await sendFormUpdate(formData);
     });
 
-    elements.saveFormButton.addEventListener('click', async (event) => {
+    elements.saveFormButton.addEventListener('click', async event => {
         event.preventDefault();
-        if (!validateForm(elements)) {
+        if (!validateForm()) {
             showError('Form validation failed. Please fill out all required fields.');
             return;
         }
@@ -315,15 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await sendFormUpdate(formData);
     });
 
-    elements.contractType.addEventListener('change', ({ target }) => {
-        const isExternal = target.value === 'external';
-        elements.sourceType.style.display = isExternal ? 'block' : 'none';
-        elements.contractLimit.style.display = isExternal ? 'block' : 'none';
-    });
+    elements.contractType.addEventListener('change', handleFormChange);
 
-    // Add event listeners for form fields
+    // Add event listeners for real-time form changes
     Object.values(elements).forEach(element => {
-        if (element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
             element.addEventListener('change', handleFormChange);
         }
     });

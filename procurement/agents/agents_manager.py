@@ -12,8 +12,7 @@ from procurement.utils.form_handler import (
     find_rule_validation,
     read_json,
     match_if_form_updated,
-    update_first_empty_field,
-    update_form_fields,
+    update_all_empty_fields,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -84,8 +83,13 @@ class AgentsManager:
     async def _process_note_taking(
         self, input_prompt: str, full_history_text: str
     ) -> Dict[str, Any]:
-        for round_i in range(10):  # Limit to 10 iterations to prevent infinite loops
-            logger.debug(f"Note-Taking Agent: Iteration {round_i + 1}")
+        round_i = 0
+        while True:
+            round_i += 1
+            if round_i > 5:
+                logger.info("Note-Taking Agent: Maximum iterations reached.")
+                break
+            logger.debug(f"Note-Taking Agent: Iteration {round_i}")
             note_response = await self.note_taking_agent.process(
                 input_prompt,
                 form=self.schema,
@@ -96,14 +100,7 @@ class AgentsManager:
                 logger.info("Note-Taking Agent: No new fields filled.")
                 break
             # Only update the schema if the note-taking agent has filled in a new field
-            update_first_empty_field(self.schema, note_response["schema"])
-            # update the schema with the new values
-            update_form_fields(
-                self.schema,
-                condition_key="Type of contract",
-                condition_value="External",
-                actions=[("Type of Source", ""), ("Contract Limit", "")],
-            )
+            update_all_empty_fields(self.schema, note_response["schema"])
             # In case of an update, the form should be updated with the new values
             match_if_form_updated(self.schema, note_response["schema"])
             if self.schema == note_response["schema"]:

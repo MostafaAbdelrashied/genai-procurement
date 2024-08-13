@@ -1,16 +1,16 @@
 {
-  "General Information": {
-    "Title": "",
-    "Detailed description": {
-      "Business need": "",
-      "Project scope": "",
-      "Type of contract": ""
+  "general_information": {
+    "title": "",
+    "detailed_description": {
+      "business_need": "",
+      "project_scope": "",
+      "type_of_contract": ""
     }
   },
-  "Financial Details": {
-    "Start Date": "",
-    "End Date": "",
-    "Expected Amount": "",
-    "Currency": ""
+  "financial_details": {
+    "start_date": "",
+    "end_date": "",
+    "expected_amount": "",
+    "currency": ""
   }
 }
