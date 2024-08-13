@@ -9,47 +9,64 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionWindow: document.getElementById('session-window'),
         sessionNameInput: document.getElementById('session-name'),
         createSessionButton: document.getElementById('create-session-button'),
-        contractTypeSelect: document.getElementById('contract-type'),
-        externalSourceType: document.getElementById('external-source-type'),
-        externalContractLimit: document.getElementById('external-contract-limit'),
-        refreshFormButton: document.getElementById('refresh-form-button')
+        contractType: document.getElementById('contract-type'),
+        sourceType: document.getElementById('external-source-type'),
+        contractLimit: document.getElementById('external-contract-limit'),
+        refreshFormButton: document.getElementById('refresh-form-button'),
+
+        title: document.getElementById('title'),
+        businessNeed: document.getElementById('business-need'),
+        projectScope: document.getElementById('project-scope'),
+        startDate: document.getElementById('start-date'),
+        endDate: document.getElementById('end-date'),
+        expectedAmount: document.getElementById('expected-amount'),
+        currency: document.getElementById('currency'),
     };
 
     let sessionUUID = null;
 
-    const createSession = async () => {
-        const name = elements.sessionNameInput.value.trim();
-        if (!name) return;
+    // Constants for URLs
+    const URLS = {
+        UUID_CONVERT: (name) => `/uuid/convert-string/${encodeURIComponent(name)}`,
+        CREATE_SESSION: (uuid) => `/sessions/create_session?session_id=${uuid}`,
+        GET_SESSION_DATA: (uuid) => `/sessions/get_session_data/${uuid}`,
+        CHAT_MESSAGE: (sessionUUID) => `chat/message?session_id=${sessionUUID}`,
+        UPDATE_SESSION_FORM: (sessionUUID) => `/sessions/update_session_form/${sessionUUID}`,
+    };
 
+    // Error handling and user feedback
+    const showError = (message) => {
+        console.error(message);
+        addMessage(elements.chatMessages, `Error: ${message}`, false);
+    };
+
+    // Helper for fetching and error handling
+    const fetchWithErrorHandling = async (url, options) => {
         try {
-            // Generate UUID from the name
-            const uuidResponse = await fetch(`/uuid/convert-string/${encodeURIComponent(name)}`);
-            if (!uuidResponse.ok) throw new Error('Failed to convert string to UUID');
-            const { uuid } = await uuidResponse.json();
-            sessionUUID = uuid;
-
-            // Create the session in the database
-            const createSessionResponse = await fetch('/sessions/create_session?session_id=' + uuid, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (!createSessionResponse.ok) throw new Error('Failed to create session in database');
-
-            updateSessionUI(name, uuid);
-            showChatInterface();
-
-            // Now that the session is created, we can safely fetch the form
-            await fetchAndUpdateForm();
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'An error occurred');
+            }
+            return response.json();
         } catch (error) {
-            console.error('Error:', error);
-            addMessage(`Error creating session: ${error.message}`, false);
+            showError(error.message);
+            throw error;
         }
     };
 
+    // Helper functions
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const [year, month, day] = dateString.split('-');
+        if (!day || !month || !year) return '';  // Ensure valid date parts
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    };
 
-    const updateSessionUI = (name, uuid) => {
+    const getFormData = (form) => Object.fromEntries(new FormData(form));
+
+    // Updating UI elements
+    const updateSessionUI = (elements, name, uuid) => {
         elements.sessionNameInput.style.display = 'none';
         elements.createSessionButton.style.display = 'none';
         const sessionInfoDisplay = document.createElement('div');
@@ -61,19 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.sessionWindow.appendChild(sessionInfoDisplay);
     };
 
-    const showChatInterface = () => {
-        [elements.chatMessages, elements.userInput, elements.sendButton, elements.formContainer].forEach(el => el.style.display = 'block');
+    const showChatInterface = (elements) => {
+        ['chatMessages', 'userInput', 'sendButton', 'formContainer'].forEach((id) => {
+            elements[id].style.display = 'block';
+        });
     };
 
-    const addMessage = (message, isUser = false) => {
+    const addMessage = (chatMessages, message, isUser = false) => {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
         messageElement.textContent = message;
-        elements.chatMessages.appendChild(messageElement);
-        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     };
 
-    const addLoadingIndicator = () => {
+    const addLoadingIndicator = (chatMessages) => {
         const loadingWrapper = document.createElement('div');
         loadingWrapper.innerHTML = `
             <div class="loading-typing">
@@ -84,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="loading-timer"></span>
         `;
         loadingWrapper.classList.add('bot-message', 'loading-wrapper');
-        elements.chatMessages.appendChild(loadingWrapper);
-        elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        chatMessages.appendChild(loadingWrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         const timerElement = loadingWrapper.querySelector('.loading-timer');
         const startTime = Date.now();
@@ -97,74 +116,137 @@ document.addEventListener('DOMContentLoaded', () => {
         return { loadingElement: loadingWrapper, stopTimer: () => clearInterval(timerInterval) };
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const [day, month, year] = dateString.split('.');
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const updateForm = (elements, formData) => {
+        const {
+            title = '',
+            ['business-need']: businessNeed = '',
+            ['project-scope']: projectScope = '',
+            ['contract-type']: contractType = '',
+            ['source-type']: sourceType = '',
+            ['contract-limit']: contractLimit = '',
+            ['start-date']: startDate = '',
+            ['end-date']: endDate = '',
+            ['expected-amount']: expectedAmount = '',
+            currency = ''
+        } = formData;
+
+        elements.title.value = title;
+        elements.businessNeed.value = businessNeed;
+        elements.projectScope.value = projectScope;
+        elements.contractType.value = contractType;
+
+        const isExternal = contractType === 'external';
+        elements.sourceType.style.display = isExternal ? 'block' : 'none';
+        elements.contractLimit.style.display = isExternal ? 'block' : 'none';
+
+        if (isExternal) {
+            elements.sourceType.querySelector('select').value = sourceType;
+            elements.contractLimit.querySelectorAll('input[type="radio"]').forEach((radio) => {
+                radio.checked = radio.value.toLowerCase() === contractLimit.toLowerCase();
+            });
+        }
+
+        elements.startDate.value = formatDate(startDate);
+        elements.endDate.value = formatDate(endDate);
+        elements.expectedAmount.value = expectedAmount;
+        elements.currency.value = currency;
+    };
+
+    const validateForm = (elements) => {
+        let isValid = true;
+        const requiredFields = [
+            elements.title,
+            elements.businessNeed,
+            elements.projectScope,
+            elements.contractType,
+            elements.startDate,
+            elements.endDate,
+            elements.expectedAmount,
+            elements.currency,
+        ];
+
+        if (elements.contractType.value === 'external') {
+            requiredFields.push(elements.sourceType.querySelector('select'));
+            const contractLimitSelected = [...elements.contractLimit.querySelectorAll('input[type="radio"]')].some(
+                (radio) => radio.checked
+            );
+            if (!contractLimitSelected) {
+                elements.contractLimit.classList.add('invalid');
+                isValid = false;
+            }
+        }
+
+        requiredFields.forEach((field) => {
+            if (!field.value) {
+                isValid = false;
+                field.classList.add('invalid');
+            } else {
+                field.classList.remove('invalid');
+            }
+        });
+
+        return isValid;
     };
 
     const fetchAndUpdateForm = async () => {
-        if (!sessionUUID) return;
+        if (!sessionUUID) {
+            // showError('No active session');
+            return;
+        }
 
         try {
-            const response = await fetch(`/sessions/get_session_data/${sessionUUID}`);
-            if (!response.ok) throw new Error('Failed to fetch form data from server');
-
-            const data = await response.json();
-            updateForm(data.form_data);
+            const data = await fetchWithErrorHandling(URLS.GET_SESSION_DATA(sessionUUID));
+            updateForm(elements, data.form_data);
+            // console.log('Form updated with data:', data.form_data);
         } catch (error) {
-            console.error('Error fetching form data:', error);
+            showError('Error fetching form data');
         }
     };
 
-    const updateForm = (formData) => {
-        const generalInfo = formData['General Information'];
-        const financialDetails = formData['Financial Details'];
-
-        document.getElementById('title').value = generalInfo.Title || '';
-        document.getElementById('business-need').value = generalInfo['Detailed description']['Business need'] || '';
-        document.getElementById('project-scope').value = generalInfo['Detailed description']['Project scope'] || '';
-
-        const contractType = generalInfo['Detailed description']['Type of contract'];
-        const contractTypeSelect = document.getElementById('contract-type');
-        if (contractTypeSelect) {
-            contractTypeSelect.value = contractType;
-            const isExternal = contractType === 'external';
-            document.getElementById('external-source-type').style.display = isExternal ? 'block' : 'none';
-            document.getElementById('external-contract-limit').style.display = isExternal ? 'block' : 'none';
+    const createSession = async () => {
+        const name = elements.sessionNameInput.value.trim();
+        if (!name) {
+            showError('Please enter a session name');
+            return;
         }
 
-        document.getElementById('start-date').value = formatDate(financialDetails['Start Date']);
-        document.getElementById('end-date').value = formatDate(financialDetails['End Date']);
-        document.getElementById('expected-amount').value = financialDetails['Expected Amount'] || '';
-        document.getElementById('currency').value = financialDetails['Currency'] || '';
+        try {
+            const { uuid } = await fetchWithErrorHandling(URLS.UUID_CONVERT(name));
+            sessionUUID = uuid;
+
+            await fetchWithErrorHandling(URLS.CREATE_SESSION(uuid), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            updateSessionUI(elements, name, uuid);
+            showChatInterface(elements);
+            await fetchAndUpdateForm(); // Fetch and update form data after creating session
+        } catch (error) {
+            showError(`Error creating session: ${error.message}`);
+        }
     };
 
     const sendMessage = async () => {
         const message = elements.userInput.value.trim();
         if (!message || !sessionUUID) return;
 
-        addMessage(message, true);
+        addMessage(elements.chatMessages, message, true);
         elements.userInput.value = '';
 
-        const { loadingElement, stopTimer } = addLoadingIndicator();
+        const { loadingElement, stopTimer } = addLoadingIndicator(elements.chatMessages);
 
         try {
-            const response = await fetch(`chat/message?session_id=${sessionUUID}`, {
+            const { response: botResponse } = await fetchWithErrorHandling(URLS.CHAT_MESSAGE(sessionUUID), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message }),
             });
 
-            if (!response.ok) throw new Error('Network response was not ok');
-
-            const { response: botResponse } = await response.json();
-            addMessage(botResponse);
-
-            await fetchAndUpdateForm();
+            addMessage(elements.chatMessages, botResponse);
+            await fetchAndUpdateForm(); // Ensure form update after chat interaction response
         } catch (error) {
-            console.error('Error:', error);
-            addMessage('Sorry, there was an error processing your message.');
+            showError('Error processing your message');
         } finally {
             stopTimer();
             loadingElement.remove();
@@ -173,114 +255,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sendFormUpdate = async (formData) => {
         if (!sessionUUID) {
-            throw new Error('No active session');
+            // showError('No active session');
+            return;
         }
 
         try {
-            const response = await fetch(`/sessions/update_session_form/${sessionUUID}`, {
+            await fetchWithErrorHandling(URLS.UPDATE_SESSION_FORM(sessionUUID), {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to update form on server');
-            }
-            return await response.json();
+            // console.log('Form data sent to server:', formData);
+            await fetchAndUpdateForm(); // Fetch updated data from server
         } catch (error) {
-            console.error('Error updating form:', error);
-            throw error;
+            showError('Error updating form');
         }
     };
 
-    const validateForm = () => {
-        let isValid = true;
-        const requiredFields = [
-            'title', 'business-need', 'project-scope', 'contract-type',
-            'start-date', 'end-date', 'expected-amount', 'currency'
-        ];
-
-        requiredFields.forEach(field => {
-            const element = document.getElementById(field);
-            if (!element.value) {
-                isValid = false;
-                element.classList.add('invalid');
-            } else {
-                element.classList.remove('invalid');
-            }
-        });
-
-        if (elements.contractTypeSelect.value === 'external') {
-            const sourceType = document.getElementById('source-type');
-            if (!sourceType.value) {
-                isValid = false;
-                sourceType.classList.add('invalid');
-            } else {
-                sourceType.classList.remove('invalid');
-            }
-
-            const contractLimits = document.getElementsByName('contract-limit');
-            const isAnyContractLimitSelected = Array.from(contractLimits).some(radio => radio.checked);
-            if (!isAnyContractLimitSelected) {
-                isValid = false;
-                elements.externalContractLimit.classList.add('invalid');
-            } else {
-                elements.externalContractLimit.classList.remove('invalid');
-            }
-        }
-
-        return isValid;
+    const handleFormChange = async (event) => {
+        const formData = getFormData(elements.procurementForm);
+        await sendFormUpdate(formData);
     };
 
+    // Event Listeners
     elements.createSessionButton.addEventListener('click', createSession);
-    elements.sessionNameInput.addEventListener('keypress', event => {
+    elements.sessionNameInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
             createSession();
         }
     });
-    elements.refreshFormButton.addEventListener('click', fetchAndUpdateForm);
+
     elements.sendButton.addEventListener('click', sendMessage);
-    elements.userInput.addEventListener('keypress', event => {
+    elements.userInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') sendMessage();
     });
 
+    elements.refreshFormButton.addEventListener('click', fetchAndUpdateForm);
+
     elements.procurementForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const formData = new FormData(elements.procurementForm);
-        const data = Object.fromEntries(formData);
-
-        try {
-            await sendFormUpdate(data);
-            addMessage('Form saved successfully!', false);
-        } catch (error) {
-            addMessage('Error saving form. Please try again.', false);
+        if (!validateForm(elements)) {
+            showError('Form validation failed. Please fill out all required fields.');
+            return;
         }
+
+        const formData = getFormData(elements.procurementForm);
+        await sendFormUpdate(formData);
     });
 
     elements.saveFormButton.addEventListener('click', async (event) => {
         event.preventDefault();
-        if (validateForm()) {
-            const formData = new FormData(elements.procurementForm);
-            const data = Object.fromEntries(formData);
-
-            try {
-                await sendFormUpdate(data);
-                addMessage('Form saved successfully!', false);
-            } catch (error) {
-                addMessage(`Error saving form: ${error.message}`, false);
-            }
-        } else {
-            addMessage('Please fill in all required fields.', false);
+        if (!validateForm(elements)) {
+            showError('Form validation failed. Please fill out all required fields.');
+            return;
         }
+
+        const formData = getFormData(elements.procurementForm);
+        await sendFormUpdate(formData);
     });
 
-    elements.contractTypeSelect.addEventListener('change', event => {
-        const isExternal = event.target.value === 'external';
-        elements.externalSourceType.style.display = isExternal ? 'block' : 'none';
-        elements.externalContractLimit.style.display = isExternal ? 'block' : 'none';
+    elements.contractType.addEventListener('change', ({ target }) => {
+        const isExternal = target.value === 'external';
+        elements.sourceType.style.display = isExternal ? 'block' : 'none';
+        elements.contractLimit.style.display = isExternal ? 'block' : 'none';
+    });
+
+    // Add event listeners for form fields
+    Object.values(elements).forEach(element => {
+        if (element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+            element.addEventListener('change', handleFormChange);
+        }
     });
 });

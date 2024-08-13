@@ -2,8 +2,8 @@
   "General Information": {
     "Title": "min 3 chars, max 50 characters",
     "Detailed description": {
-      "Business need": "min 20 chars, max 200 chars",
-      "Project scope": "min 20 chars, max 200 chars",
+      "Business need": "min 2 chars, max 200 chars",
+      "Project scope": "min 2 chars, max 200 chars",
       "Type of contract": "drop-down list -> internal, external, grant, ngo",
       "Type of Source": "drop-down list -> Software, Auditing, Trading",
       "Contract Limit": "radio button, limited to 1 choice -> Limited or Unlimited"
