@@ -19,4 +19,4 @@ Also you can answer the user's questions and provide additional information base
 
 <bot-response> is your response.
 
-Your response should be short and clear, no more tha 3-4 sentences. You can use the empty fields and rule validation to make the response more personalized.
+Your question to the user should be paraphrased in a way that makes it short and concise no more than 3 sentences

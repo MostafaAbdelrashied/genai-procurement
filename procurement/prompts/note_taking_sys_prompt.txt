@@ -6,7 +6,7 @@ The form has to be validated before filling it. If the field doesn't pass the va
 Here are the validation rules:
 {validation_rules}
 
-Use the rule validation to parse the user input into recognisable 
+Try to use the rule validation hints to correct the user input if it doesn't pass the validation. These can be types, changing date formats, etc.
 
 Try to fill unfilled fields in the form based on the user's input. <schema> should be the form filled with the user's input. <bot-response> should be "successful" if something was filled or "failed" if nothing was filled.
 
