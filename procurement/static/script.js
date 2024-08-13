@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let sessionUUID = null;
 
-    // Constants for URLs 
+    // Constants for URLs
     const URLS = {
         UUID_CONVERT: name => `/uuid/convert-string/${encodeURIComponent(name)}`,
         CREATE_SESSION: uuid => `/sessions/create_session?session_id=${uuid}`,
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         UPDATE_SESSION_FORM: uuid => `/sessions/update_session_form/${uuid}`,
     };
 
-    // UI Update and Helper Functions 
+    // UI Update and Helper Functions
 
     const showError = message => {
         console.error(message);
@@ -52,15 +52,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const getFormData = form => Object.fromEntries(new FormData(form));
+    const getFormattedFormData = () => {
+        return {
+            general_information: {
+                title: elements.title.value,
+                detailed_description: {
+                    business_need: elements.businessNeed.value,
+                    project_scope: elements.projectScope.value,
+                    type_of_contract: elements.contractType.value
+                }
+            },
+            financial_details: {
+                start_date: elements.startDate.value,        // yyyy-MM-dd
+                end_date: elements.endDate.value,            // yyyy-MM-dd
+                expected_amount: elements.expectedAmount.value,
+                currency: elements.currency.value
+            }
+        };
+    };
 
     const updateSessionUI = (name, uuid) => {
         elements.sessionNameInput.style.display = 'none';
         elements.createSessionButton.style.display = 'none';
         const sessionInfoDisplay = document.createElement('div');
-        sessionInfoDisplay.innerHTML = ` 
-            <div>Text: ${name}</div> 
-            <div>UUID: ${uuid}</div> 
+        sessionInfoDisplay.innerHTML = `
+            <div>Text: ${name}</div>
+            <div>UUID: ${uuid}</div>
         `;
         sessionInfoDisplay.classList.add('session-info-display');
         elements.sessionWindow.appendChild(sessionInfoDisplay);
@@ -82,13 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addLoadingIndicator = chatMessages => {
         const loadingWrapper = document.createElement('div');
-        loadingWrapper.innerHTML = ` 
-            <div class="loading-typing"> 
-                <div class="bounce bounce1"></div> 
-                <div class="bounce bounce2"></div> 
-                <div class="bounce bounce3"></div> 
-            </div> 
-            <span class="loading-timer"></span> 
+        loadingWrapper.innerHTML = `
+            <div class="loading-typing">
+                <div class="bounce bounce1"></div>
+                <div class="bounce bounce2"></div>
+                <div class="bounce bounce3"></div>
+            </div>
+            <span class="loading-timer"></span>
         `;
         loadingWrapper.classList.add('bot-message', 'loading-wrapper');
         chatMessages.appendChild(loadingWrapper);
@@ -114,35 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.projectScope.value = detailedDescription["project_scope"] || '';
         elements.contractType.value = detailedDescription["type_of_contract"] || '';
 
-        elements.startDate.value = financialDetails["start_date"];  // assuming the date is already in yyyy-MM-dd
-        elements.endDate.value = financialDetails["end_date"];      // assuming the date is already in yyyy-MM-dd
+        elements.startDate.value = financialDetails["start_date"] || '';  // Assuming it's in yyyy-MM-dd format
+        elements.endDate.value = financialDetails["end_date"] || '';      // Assuming it's in yyyy-MM-dd format
         elements.expectedAmount.value = financialDetails["expected_amount"] || '';
         elements.currency.value = financialDetails["currency"] || '';
-    };
-
-    const validateForm = () => {
-        let isValid = true;
-        const requiredFields = [
-            elements.title,
-            elements.businessNeed,
-            elements.projectScope,
-            elements.contractType,
-            elements.startDate,
-            elements.endDate,
-            elements.expectedAmount,
-            elements.currency,
-        ];
-
-        requiredFields.forEach(field => {
-            if (!field.value) {
-                isValid = false;
-                field.classList.add('invalid');
-            } else {
-                field.classList.remove('invalid');
-            }
-        });
-
-        return isValid;
     };
 
     const fetchAndUpdateForm = async () => {
@@ -215,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
+
+            // Wait for the form to be updated on the server, then fetch and update the form in the UI
             await fetchAndUpdateForm();
         } catch (error) {
             showError('Error updating form');
@@ -222,26 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleFormChange = async event => {
-        const formData = {
-            general_information: {
-                title: elements.title.value,
-                detailed_description: {
-                    business_need: elements.businessNeed.value,
-                    project_scope: elements.projectScope.value,
-                    type_of_contract: elements.contractType.value
-                }
-            },
-            financial_details: {
-                start_date: elements.startDate.value,        // yyyy-MM-dd
-                end_date: elements.endDate.value,            // yyyy-MM-dd
-                expected_amount: elements.expectedAmount.value,
-                currency: elements.currency.value
-            }
-        };
+        const formData = getFormattedFormData();
         await sendFormUpdate(formData);
     };
 
-    // Event Listeners 
+    // Event Listeners
     elements.createSessionButton.addEventListener('click', createSession);
 
     elements.sessionNameInput.addEventListener('keypress', event => {
@@ -260,29 +239,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.procurementForm.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!validateForm()) {
-            showError('Form validation failed. Please fill out all required fields.');
-            return;
-        }
-
-        const formData = getFormData(elements.procurementForm);
+        const formData = getFormattedFormData();
         await sendFormUpdate(formData);
     });
 
     elements.saveFormButton.addEventListener('click', async event => {
         event.preventDefault();
-        if (!validateForm()) {
-            showError('Form validation failed. Please fill out all required fields.');
-            return;
-        }
-
-        const formData = getFormData(elements.procurementForm);
+        const formData = getFormattedFormData();
         await sendFormUpdate(formData);
     });
 
     elements.contractType.addEventListener('change', handleFormChange);
 
-    // Add event listeners for real-time form changes 
+    // Add event listeners for real-time form changes
     Object.values(elements).forEach(element => {
         if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
             element.addEventListener('change', handleFormChange);
