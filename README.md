@@ -6,7 +6,7 @@ This is the backend for the Procurement Chatbot. It is a FastAPI app that uses O
 
 ## How to run
 
-1. Create an .env file with OpenAI API key
+1. Create an .env file with OpenAI API key and DB connection parameters
 
     ```bash
     cp .env.example .env
@@ -89,8 +89,27 @@ This is the backend for the Procurement Chatbot. It is a FastAPI app that uses O
         └── text_handler.py     
 ```
 
-## Agent Interactions
 
-The diagram below explains the interaction between agents
+## Stack
 
-<img src="flowchart.jpg" alt="drawing" width="1200"/>
+- FastAPI
+- OpenAI (no LangChain)
+- PostgreSQL (with vector extension)
+- Docker
+- Poetry
+- Ruff (Python linter)
+- Pydantic (for data validation)
+- Uvicorn (ASGI server)
+- Pytest (testing)
+
+## Available Endpoints
+
+All endpoints [here](./ENDPOINTS.md)
+
+## Agents Infractions
+
+The agents infractions are as follows:
+- `IntentAgent`: This agent is responsible for identifying the user's intention based on the input prompt.
+- `NoteTakingAgent`: This agent is responsible for filling in the form fields based on the user's input prompt.
+- `SpecialistAgent`: This agent is responsible for handling specialist queries.
+- `ConversationAgent`: This agent is responsible for moving the conversation forward by asking the user for the next field to fill in the form.
