@@ -66,7 +66,7 @@ def test_short_chat_with_gpt(client, chat_url):
         ),
         (
             {
-                "message": "business_need is 'essential', scope is 'internal', type of contract is internal"
+                "message": "business_need is 'essential', scope is 'internal', type of contract is 'internal'"
             },
             {
                 "general_information": {
@@ -87,13 +87,13 @@ def test_short_chat_with_gpt(client, chat_url):
         ),
         (
             {
-                "message": "Start date is 01.01.2025, end date is 01.01.2026, expected amount is 120000, currency is 'EUR'"
+                "message": "Start date is 2025-01-01, end date is 2026-01-01, expected amount is '12000', currency is 'EUR'"
             },
             {
                 "financial_details": {
-                    "start_date": "01.01.2025",
-                    "end_date": "01.01.2026",
-                    "expected_amount": "120000",
+                    "start_date": "2025-01-01",
+                    "end_date": "2026-01-01",
+                    "expected_amount": "12000",
                     "currency": "EUR",
                 },
             },
@@ -106,6 +106,43 @@ def test_long_chat_with_gpt(client, chat_url, chat_input, expected_form_data):
     chat_output = response.json()
     assert_valid_chat_output(chat_output)
 
+    for key, value in expected_form_data.items():
+        assert key in chat_output["form"]
+        assert chat_output["form"][key] == value
+
+
+@pytest.mark.parametrize(
+    "chat_input, expected_form_data",
+    [
+        (
+            {
+                "message": "Hello. I need to create a new procurement request with title Dashboard, business_need is 'essential', scope is 'internal', type of contract is 'ngo', start date is 2025-01-01, end date is 2026-01-01, expected amount is 30k€"
+            },
+            {
+                "general_information": {
+                    "title": "Dashboard",
+                    "detailed_description": {
+                        "business_need": "essential",
+                        "project_scope": "internal",
+                        "type_of_contract": "ngo",
+                    },
+                },
+                "financial_details": {
+                    "start_date": "2025-01-01",
+                    "end_date": "2026-01-01",
+                    "expected_amount": "30000",
+                    "currency": "EUR",
+                },
+            },
+        ),
+    ],
+)
+def test_complete_chat_with_gpt(client, chat_url, chat_input, expected_form_data):
+    response = client.post(chat_url, json=chat_input)
+    assert response.status_code == 200
+    chat_output = response.json()
+    assert_valid_chat_output(chat_output)
+    assert chat_output["response"] == "The form was successfully filled."
     for key, value in expected_form_data.items():
         assert key in chat_output["form"]
         assert chat_output["form"][key] == value
