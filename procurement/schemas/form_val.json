@@ -8,8 +8,8 @@
     }
   },
   "financial_details": {
-    "start_date": "date picker, before end_date and after today, it should be iso format e.g. 31-12-2021",
-    "end_date": "date picker, after start_date, it should be iso format e.g. 31-12-2021",
+    "start_date": "date picker, before end_date and after today, it should be iso format e.g. yyyy-MM-dd",
+    "end_date": "date picker, after start_date, it should be iso format e.g. yyyy-MM-dd",
     "expected_amount": "only numbers, min 0, max 1000000",
     "currency": "drop-down list -> USD, EUR, GBP"
   }

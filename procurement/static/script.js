@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let sessionUUID = null;
 
-    // Constants for URLs
+    // Constants for URLs 
     const URLS = {
         UUID_CONVERT: name => `/uuid/convert-string/${encodeURIComponent(name)}`,
         CREATE_SESSION: uuid => `/sessions/create_session?session_id=${uuid}`,
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         UPDATE_SESSION_FORM: uuid => `/sessions/update_session_form/${uuid}`,
     };
 
-    // UI Update and Helper Functions
+    // UI Update and Helper Functions 
 
     const showError = message => {
         console.error(message);
@@ -54,19 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getFormData = form => Object.fromEntries(new FormData(form));
 
-    const formatDate = dateString => {
-        if (!dateString) return '';
-        const parts = dateString.split('-');
-        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : '';
-    };
-
     const updateSessionUI = (name, uuid) => {
         elements.sessionNameInput.style.display = 'none';
         elements.createSessionButton.style.display = 'none';
         const sessionInfoDisplay = document.createElement('div');
-        sessionInfoDisplay.innerHTML = `
-            <div>Text: ${name}</div>
-            <div>UUID: ${uuid}</div>
+        sessionInfoDisplay.innerHTML = ` 
+            <div>Text: ${name}</div> 
+            <div>UUID: ${uuid}</div> 
         `;
         sessionInfoDisplay.classList.add('session-info-display');
         elements.sessionWindow.appendChild(sessionInfoDisplay);
@@ -88,13 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addLoadingIndicator = chatMessages => {
         const loadingWrapper = document.createElement('div');
-        loadingWrapper.innerHTML = `
-            <div class="loading-typing">
-                <div class="bounce bounce1"></div>
-                <div class="bounce bounce2"></div>
-                <div class="bounce bounce3"></div>
-            </div>
-            <span class="loading-timer"></span>
+        loadingWrapper.innerHTML = ` 
+            <div class="loading-typing"> 
+                <div class="bounce bounce1"></div> 
+                <div class="bounce bounce2"></div> 
+                <div class="bounce bounce3"></div> 
+            </div> 
+            <span class="loading-timer"></span> 
         `;
         loadingWrapper.classList.add('bot-message', 'loading-wrapper');
         chatMessages.appendChild(loadingWrapper);
@@ -110,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { loadingElement: loadingWrapper, stopTimer: () => clearInterval(timerInterval) };
     };
 
-
     const updateForm = formData => {
         const generalInfo = formData["general_information"] || {};
         const financialDetails = formData["financial_details"] || {};
@@ -121,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.projectScope.value = detailedDescription["project_scope"] || '';
         elements.contractType.value = detailedDescription["type_of_contract"] || '';
 
-        elements.startDate.value = formatDate(financialDetails["start_date"]);
-        elements.endDate.value = formatDate(financialDetails["end_date"]);
+        elements.startDate.value = financialDetails["start_date"];  // assuming the date is already in yyyy-MM-dd
+        elements.endDate.value = financialDetails["end_date"];      // assuming the date is already in yyyy-MM-dd
         elements.expectedAmount.value = financialDetails["expected_amount"] || '';
         elements.currency.value = financialDetails["currency"] || '';
     };
@@ -139,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.expectedAmount,
             elements.currency,
         ];
-
 
         requiredFields.forEach(field => {
             if (!field.value) {
@@ -240,8 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             },
             financial_details: {
-                start_date: elements.startDate.value,
-                end_date: elements.endDate.value,
+                start_date: elements.startDate.value,        // yyyy-MM-dd
+                end_date: elements.endDate.value,            // yyyy-MM-dd
                 expected_amount: elements.expectedAmount.value,
                 currency: elements.currency.value
             }
@@ -249,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await sendFormUpdate(formData);
     };
 
-    // Event Listeners
+    // Event Listeners 
     elements.createSessionButton.addEventListener('click', createSession);
 
     elements.sessionNameInput.addEventListener('keypress', event => {
@@ -290,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     elements.contractType.addEventListener('change', handleFormChange);
 
-    // Add event listeners for real-time form changes
+    // Add event listeners for real-time form changes 
     Object.values(elements).forEach(element => {
         if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
             element.addEventListener('change', handleFormChange);
