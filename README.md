@@ -2,7 +2,9 @@
 
 ## Description
 
-This is the backend for the Procurement Chatbot. It is a FastAPI app that uses OpenAI's GPT-4 to generate responses to user queries. These responses are parsed to fill a form that is then sent to the procurement team.
+This is a siple solution for facilitating for filling using GenAI. It helps people who are often creating new request by enabling them to insert multiple fields at once, asking questions about the form if it is not clear. This solution is production-ready by using FastAPI, PostgreSQL, and Docker. it can be scaled horizontally by running multiple instances of the application behind a load balancer.
+
+Additionally, it uses the vector extension for PostgreSQL to store and search for similar questions in vector databases.
 
 ## How to run
 
@@ -113,3 +115,4 @@ The agents infractions are as follows:
 - `NoteTakingAgent`: This agent is responsible for filling in the form fields based on the user's input prompt.
 - `SpecialistAgent`: This agent is responsible for handling specialist queries.
 - `ConversationAgent`: This agent is responsible for moving the conversation forward by asking the user for the next field to fill in the form.
+SpecialistAgent and ConversationAgent are run in parallel to handle the user's input prompt. 
