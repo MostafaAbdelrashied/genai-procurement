@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -214,7 +214,13 @@ async def get_embedding_by_content(
 async def get_nearest_embeddings(
     query: str,
     limit: int = 5,
-    distance_type: str = "l2_distance",
+    distance_type: Literal[
+        "max_inner_product",
+        "cosine_distance",
+        "l1_distance",
+        "l2_distance",
+        "hamming_distance",
+    ] = "l2_distance",
     db_ops: DatabaseOperations = Depends(get_db_ops),
 ) -> List[EmbeddingWithDistanceOutput]:
     try:
@@ -248,7 +254,13 @@ async def get_nearest_embeddings(
 async def get_embeddings_within_distance(
     query: str,
     distance: float,
-    distance_type: str = "l2_distance",
+    distance_type: Literal[
+        "max_inner_product",
+        "cosine_distance",
+        "l1_distance",
+        "l2_distance",
+        "hamming_distance",
+    ] = "l2_distance",
     db_ops: DatabaseOperations = Depends(get_db_ops),
 ) -> List[EmbeddingDataOutput]:
     try:
