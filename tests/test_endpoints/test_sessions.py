@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 import pytest
 
-from tests.test_endpoints.fixtures.sessions_fixture import assert_valid_message
-from tests.test_endpoints.fixtures.sessions_fixture import assert_valid_session_data
+from tests.test_endpoints.fixtures.sessions_fixture import (
+    assert_valid_message,
+    assert_valid_session_data,
+)
 
 
 def test_get_all_sessions(client, get_test_session_id):

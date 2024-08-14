@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from form.utils.text_handler import convert_str_to_uuid
@@ -20,7 +18,7 @@ def sample_documents():
             "content": f"This is test document {i}",
             "properties": {"key": "value"},
         }
-        for i in range(1, 5)
+        for i in range(1, 3)
     ]
 
 

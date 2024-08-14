@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-
 def assert_valid_session_data(session_data):
     assert isinstance(session_data, dict)
     assert "session_id" in session_data

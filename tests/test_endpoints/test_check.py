@@ -1,9 +1,6 @@
-from __future__ import annotations
-
 import pytest
 
-from form.db.db_tables import Message
-from form.db.db_tables import Session
+from form.db.db_tables import Message, Session
 
 
 @pytest.mark.parametrize(

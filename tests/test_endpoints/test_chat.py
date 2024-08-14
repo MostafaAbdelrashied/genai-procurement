@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import time
 
 import pytest
@@ -64,15 +62,15 @@ def test_short_chat_with_gpt(client, chat_url):
         ),
         (
             {
-                "message": "business_need is 'essential', scope is 'internal', type of contract is 'internal'"
+                "message": "business_need is 'essential', scope is 'universal', type of contract is 'Internal'"
             },
             {
                 "general_information": {
                     "title": "Dashboard",
                     "detailed_description": {
                         "business_need": "essential",
-                        "project_scope": "internal",
-                        "type_of_contract": "internal",
+                        "project_scope": "universal",
+                        "type_of_contract": "Internal",
                     },
                 },
                 "financial_details": {
@@ -114,15 +112,15 @@ def test_long_chat_with_gpt(client, chat_url, chat_input, expected_form_data):
     [
         (
             {
-                "message": "Hello. I need to create a new form request with title Dashboard, business_need is 'essential', scope is 'internal', type of contract is 'ngo', start date is 2025-01-01, end date is 2026-01-01, expected amount is 30k€"
+                "message": "Hello. I need to create a new form request with title Dashboard, business_need is 'essential', scope is 'universal', type of contract is 'NGO', start date is 2025-01-01, end date is 2026-01-01, expected amount is 30k€"
             },
             {
                 "general_information": {
                     "title": "Dashboard",
                     "detailed_description": {
                         "business_need": "essential",
-                        "project_scope": "internal",
-                        "type_of_contract": "ngo",
+                        "project_scope": "universal",
+                        "type_of_contract": "NGO",
                     },
                 },
                 "financial_details": {

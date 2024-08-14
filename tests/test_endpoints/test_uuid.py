@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-
 def test_convert_to_uuid_success(client):
     response = client.get("/uuid/convert-string/1")
     assert response.status_code == 200
