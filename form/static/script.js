@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages: document.getElementById('chat-messages'),
         userInput: document.getElementById('user-input'),
         sendButton: document.getElementById('send-button'),
-        Form: document.getElementById('form'),
+        form: document.getElementById('form'),
         saveFormButton: document.getElementById('save-form-button'),
         formContainer: document.getElementById('form-container'),
         sessionWindow: document.getElementById('session-window'),
@@ -30,222 +30,225 @@ document.addEventListener('DOMContentLoaded', () => {
         UPDATE_SESSION_FORM: uuid => `/sessions/update_session_form/${uuid}`,
     };
 
-    const displayMessage = (chatMessages, message, isUser = false) => {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
-        messageElement.textContent = message;
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    };
+    class UIManager {
+        static displayMessage(message, isUser = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', isUser ? 'user-message' : 'bot-message');
+            messageElement.textContent = message;
+            elements.chatMessages.appendChild(messageElement);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+        }
 
-    const showError = message => {
-        console.error(message);
-        displayMessage(elements.chatMessages, `Error: ${message}`, false);
-    };
+        static showNotification(message, isError = false) {
+            console[isError ? 'error' : 'log'](message);
+            this.displayMessage(`${isError ? 'Error' : 'Info'}: ${message}`, false);
+        }
 
-    const fetchWithErrorHandling = async (url, options) => {
-        try {
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'An error occurred');
+        static updateSessionUI(name, uuid) {
+            elements.sessionNameInput.style.display = 'none';
+            elements.createSessionButton.style.display = 'none';
+            const sessionInfoDisplay = document.createElement('div');
+            sessionInfoDisplay.innerHTML = `
+                <div>Text: ${name}</div>
+                <div>UUID: ${uuid}</div>
+            `;
+            sessionInfoDisplay.classList.add('session-info-display');
+            elements.sessionWindow.appendChild(sessionInfoDisplay);
+        }
+
+        static showChatInterface() {
+            ['chatMessages', 'userInput', 'sendButton', 'formContainer'].forEach(id => {
+                elements[id].style.display = 'block';
+            });
+        }
+
+        static addLoadingIndicator() {
+            const loadingWrapper = document.createElement('div');
+            loadingWrapper.innerHTML = `
+                <div class="loading-typing">
+                    <div class="bounce bounce1"></div>
+                    <div class="bounce bounce2"></div>
+                    <div class="bounce bounce3"></div>
+                </div>
+                <span class="loading-timer"></span>
+            `;
+            loadingWrapper.classList.add('bot-message', 'loading-wrapper');
+            elements.chatMessages.appendChild(loadingWrapper);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+
+            const timerElement = loadingWrapper.querySelector('.loading-timer');
+            const startTime = Date.now();
+            const timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timerElement.textContent = `${elapsed}s`;
+            }, 1000);
+
+            return {
+                loadingElement: loadingWrapper,
+                stopTimer: () => clearInterval(timerInterval)
+            };
+        }
+    }
+
+    class FormManager {
+        static getFormattedData() {
+            return {
+                general_information: {
+                    title: elements.title.value,
+                    detailed_description: {
+                        business_need: elements.businessNeed.value,
+                        project_scope: elements.projectScope.value,
+                        type_of_contract: elements.contractType.value
+                    }
+                },
+                financial_details: {
+                    start_date: elements.startDate.value,
+                    end_date: elements.endDate.value,
+                    expected_amount: elements.expectedAmount.value,
+                    currency: elements.currency.value
+                }
+            };
+        }
+
+        static updateForm(formData) {
+            const generalInfo = formData.general_information || {};
+            const financialDetails = formData.financial_details || {};
+            const detailedDescription = generalInfo.detailed_description || {};
+
+            elements.title.value = generalInfo.title || '';
+            elements.businessNeed.value = detailedDescription.business_need || '';
+            elements.projectScope.value = detailedDescription.project_scope || '';
+            elements.contractType.value = detailedDescription.type_of_contract || '';
+            elements.startDate.value = financialDetails.start_date || '';
+            elements.endDate.value = financialDetails.end_date || '';
+            elements.expectedAmount.value = financialDetails.expected_amount || '';
+            elements.currency.value = financialDetails.currency || '';
+        }
+    }
+
+    class APIManager {
+        static async fetchWithErrorHandling(url, options) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'An error occurred');
+                }
+                return response.json();
+            } catch (error) {
+                UIManager.showNotification(error.message, true);
+                throw error;
             }
-            return response.json();
-        } catch (error) {
-            showError(error.message);
-            throw error;
-        }
-    };
-
-    const getFormattedFormData = () => ({
-        general_information: {
-            title: elements.title.value,
-            detailed_description: {
-                business_need: elements.businessNeed.value,
-                project_scope: elements.projectScope.value,
-                type_of_contract: elements.contractType.value
-            }
-        },
-        financial_details: {
-            start_date: elements.startDate.value,
-            end_date: elements.endDate.value,
-            expected_amount: elements.expectedAmount.value,
-            currency: elements.currency.value
-        }
-    });
-
-    const updateSessionUI = (name, uuid) => {
-        elements.sessionNameInput.style.display = 'none';
-        elements.createSessionButton.style.display = 'none';
-        const sessionInfoDisplay = document.createElement('div');
-        sessionInfoDisplay.innerHTML = `
-            <div>Text: ${name}</div>
-            <div>UUID: ${uuid}</div>
-        `;
-        sessionInfoDisplay.classList.add('session-info-display');
-        elements.sessionWindow.appendChild(sessionInfoDisplay);
-    };
-
-    const showChatInterface = () => {
-        ['chatMessages', 'userInput', 'sendButton', 'formContainer'].forEach(id => {
-            elements[id].style.display = 'block';
-        });
-    };
-
-    const addLoadingIndicator = chatMessages => {
-        const loadingWrapper = document.createElement('div');
-        loadingWrapper.innerHTML = `
-            <div class="loading-typing">
-                <div class="bounce bounce1"></div>
-                <div class="bounce bounce2"></div>
-                <div class="bounce bounce3"></div>
-            </div>
-            <span class="loading-timer"></span>
-        `;
-        loadingWrapper.classList.add('bot-message', 'loading-wrapper');
-        chatMessages.appendChild(loadingWrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        const timerElement = loadingWrapper.querySelector('.loading-timer');
-        const startTime = Date.now();
-        const timerInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            timerElement.textContent = `${elapsed}s`;
-        }, 1000);
-
-        return { loadingElement: loadingWrapper, stopTimer: () => clearInterval(timerInterval) };
-    };
-
-    const updateForm = formData => {
-        const generalInfo = formData.general_information || {};
-        const financialDetails = formData.financial_details || {};
-        const detailedDescription = generalInfo.detailed_description || {};
-
-        elements.title.value = generalInfo.title || '';
-        elements.businessNeed.value = detailedDescription.business_need || '';
-        elements.projectScope.value = detailedDescription.project_scope || '';
-        elements.contractType.value = detailedDescription.type_of_contract || '';
-        elements.startDate.value = financialDetails.start_date || '';
-        elements.endDate.value = financialDetails.end_date || '';
-        elements.expectedAmount.value = financialDetails.expected_amount || '';
-        elements.currency.value = financialDetails.currency || '';
-    };
-
-    const fetchAndUpdateForm = async () => {
-        if (!sessionUUID) return;
-
-        try {
-            const data = await fetchWithErrorHandling(URLS.GET_SESSION_DATA(sessionUUID));
-            updateForm(data.form_data);
-        } catch (error) {
-            showError('Error fetching form data');
-        }
-    };
-
-    const createSession = async () => {
-        const name = elements.sessionNameInput.value.trim();
-        if (!name) {
-            showError('Please enter a session name');
-            return;
         }
 
-        try {
-            const { uuid } = await fetchWithErrorHandling(URLS.UUID_CONVERT(name));
-            sessionUUID = uuid;
-
-            await fetchWithErrorHandling(URLS.CREATE_SESSION(uuid), {
+        static async createSession(name) {
+            const { uuid } = await this.fetchWithErrorHandling(URLS.UUID_CONVERT(name));
+            await this.fetchWithErrorHandling(URLS.CREATE_SESSION(uuid), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
-
-            updateSessionUI(name, uuid);
-            showChatInterface();
-            await fetchAndUpdateForm();
-        } catch (error) {
-            showError(`Error creating session: ${error.message}`);
+            return uuid;
         }
-    };
 
-    const sendMessage = async () => {
-        const message = elements.userInput.value.trim();
-        if (!message || !sessionUUID) return;
+        static async fetchFormData(uuid) {
+            const data = await this.fetchWithErrorHandling(URLS.GET_SESSION_DATA(uuid));
+            return data.form_data;
+        }
 
-        displayMessage(elements.chatMessages, message, true);
-        elements.userInput.value = '';
-
-        const { loadingElement, stopTimer } = addLoadingIndicator(elements.chatMessages);
-
-        try {
-            const { response } = await fetchWithErrorHandling(URLS.CHAT_MESSAGE(sessionUUID), {
+        static async sendChatMessage(uuid, message) {
+            const { response } = await this.fetchWithErrorHandling(URLS.CHAT_MESSAGE(uuid), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message }),
             });
-
-            displayMessage(elements.chatMessages, response);
-            await fetchAndUpdateForm();
-        } catch (error) {
-            showError('Error processing your message');
-        } finally {
-            stopTimer();
-            loadingElement.remove();
+            return response;
         }
-    };
 
-    const sendFormUpdate = async formData => {
-        if (!sessionUUID) return;
-
-        try {
-            await fetchWithErrorHandling(URLS.UPDATE_SESSION_FORM(sessionUUID), {
+        static async updateForm(uuid, formData) {
+            await this.fetchWithErrorHandling(URLS.UPDATE_SESSION_FORM(uuid), {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
+        }
+    }
 
+    async function initializeSession() {
+        const name = elements.sessionNameInput.value.trim();
+        if (!name) {
+            UIManager.showNotification('Please enter a session name', true);
+            return;
+        }
+
+        try {
+            sessionUUID = await APIManager.createSession(name);
+            UIManager.updateSessionUI(name, sessionUUID);
+            UIManager.showChatInterface();
             await fetchAndUpdateForm();
         } catch (error) {
-            showError('Error updating form');
+            UIManager.showNotification(`Error creating session: ${error.message}`, true);
         }
-    };
+    }
 
-    const handleFormChange = async () => {
-        const formData = getFormattedFormData();
-        await sendFormUpdate(formData);
-    };
+    async function fetchAndUpdateForm() {
+        if (!sessionUUID) return;
 
-    elements.createSessionButton.addEventListener('click', createSession);
+        try {
+            const formData = await APIManager.fetchFormData(sessionUUID);
+            FormManager.updateForm(formData);
+        } catch (error) {
+            UIManager.showNotification('Error fetching form data', true);
+        }
+    }
 
+    async function handleSendMessage() {
+        const message = elements.userInput.value.trim();
+        if (!message || !sessionUUID) return;
+
+        UIManager.displayMessage(message, true);
+        elements.userInput.value = '';
+
+        const { loadingElement, stopTimer } = UIManager.addLoadingIndicator();
+
+        try {
+            const response = await APIManager.sendChatMessage(sessionUUID, message);
+            UIManager.displayMessage(response);
+            await fetchAndUpdateForm();
+        } catch (error) {
+            UIManager.showNotification('Error processing your message', true);
+        } finally {
+            stopTimer();
+            loadingElement.remove();
+        }
+    }
+
+    async function handleSaveForm() {
+        if (!sessionUUID) return;
+
+        try {
+            const formData = FormManager.getFormattedData();
+            await APIManager.updateForm(sessionUUID, formData);
+            UIManager.showNotification('Form updated successfully');
+        } catch (error) {
+            UIManager.showNotification('Error updating form', true);
+        }
+    }
+
+    // Event Listeners
+    elements.createSessionButton.addEventListener('click', initializeSession);
     elements.sessionNameInput.addEventListener('keypress', event => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            createSession();
+            initializeSession();
         }
     });
-
-    elements.sendButton.addEventListener('click', sendMessage);
+    elements.sendButton.addEventListener('click', handleSendMessage);
     elements.userInput.addEventListener('keypress', event => {
-        if (event.key === 'Enter') sendMessage();
+        if (event.key === 'Enter') handleSendMessage();
     });
-
     elements.refreshFormButton.addEventListener('click', fetchAndUpdateForm);
-
-    elements.Form.addEventListener('submit', async event => {
+    elements.saveFormButton.addEventListener('click', event => {
         event.preventDefault();
-        const formData = getFormattedFormData();
-        await sendFormUpdate(formData);
-    });
-
-    elements.saveFormButton.addEventListener('click', async event => {
-        event.preventDefault();
-        const formData = getFormattedFormData();
-        await sendFormUpdate(formData);
-    });
-
-    elements.contractType.addEventListener('change', handleFormChange);
-
-    Object.values(elements).forEach(element => {
-        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
-            element.addEventListener('change', handleFormChange);
-        }
+        handleSaveForm();
     });
 });
