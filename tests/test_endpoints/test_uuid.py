@@ -1,4 +1,4 @@
-from tests.test_endpoints import client
+from __future__ import annotations
 
 
 def test_convert_to_uuid_success(client):

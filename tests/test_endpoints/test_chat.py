@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import time
 
 import pytest
 
-from tests.test_endpoints import client
 from tests.test_endpoints.fixtures.chat_fixture import (
     assert_valid_chat_output,
-    chat_url,
 )
 
 
@@ -44,9 +44,7 @@ def test_short_chat_with_gpt(client, chat_url):
             },
         ),
         (
-            {
-                "message": "I need to initiate a new procurement request with title Dashboard"
-            },
+            {"message": "I need to initiate a new form request with title Dashboard"},
             {
                 "general_information": {
                     "title": "Dashboard",
@@ -116,7 +114,7 @@ def test_long_chat_with_gpt(client, chat_url, chat_input, expected_form_data):
     [
         (
             {
-                "message": "Hello. I need to create a new procurement request with title Dashboard, business_need is 'essential', scope is 'internal', type of contract is 'ngo', start date is 2025-01-01, end date is 2026-01-01, expected amount is 30k€"
+                "message": "Hello. I need to create a new form request with title Dashboard, business_need is 'essential', scope is 'internal', type of contract is 'ngo', start date is 2025-01-01, end date is 2026-01-01, expected amount is 30k€"
             },
             {
                 "general_information": {

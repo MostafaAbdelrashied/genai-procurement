@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import pytest
-from procurement.utils.text_handler import convert_str_to_uuid
+
+from form.utils.text_handler import convert_str_to_uuid
 
 
 @pytest.fixture

@@ -1,12 +1,12 @@
+from __future__ import annotations
+
 import json
 import tempfile
 
-from procurement.utils.form_handler import (
-    find_first_empty_field,
-    read_json,
-    match_if_form_updated,
-    update_first_empty_field,
-)
+from form.utils.form_handler import find_first_empty_field
+from form.utils.form_handler import match_if_form_updated
+from form.utils.form_handler import read_json
+from form.utils.form_handler import update_first_empty_field
 
 
 def test_update_first_empty_field():

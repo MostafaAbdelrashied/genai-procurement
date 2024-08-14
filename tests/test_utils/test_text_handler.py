@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from uuid import UUID
 
 import pytest
-from procurement.utils.text_handler import convert_str_to_uuid
+
+from form.utils.text_handler import convert_str_to_uuid
 
 
 def test_convert_str_to_uuid_empty_string():

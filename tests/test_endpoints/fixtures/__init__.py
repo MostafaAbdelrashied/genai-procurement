@@ -1,6 +1,11 @@
+from __future__ import annotations
+
 from uuid import uuid4
+
 import pytest
+
 from tests import test_session_id
+
 
 @pytest.fixture
 def get_test_session_id():

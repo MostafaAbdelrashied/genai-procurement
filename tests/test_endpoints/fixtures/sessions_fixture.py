@@ -1,4 +1,4 @@
-from tests.test_endpoints.fixtures import get_test_session_id
+from __future__ import annotations
 
 
 def assert_valid_session_data(session_data):
@@ -16,6 +16,3 @@ def assert_valid_message(message):
     assert "prompt" in message
     assert "response" in message
     assert "created_at" in message
-
-
-

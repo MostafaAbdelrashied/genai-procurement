@@ -9,3 +9,5 @@ __pycache__/
 # Environment definition
 .env
 cache/
+
+*.DS_Store

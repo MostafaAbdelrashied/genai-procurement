@@ -37,18 +37,18 @@ Additionally, it uses the vector extension for PostgreSQL to store and search fo
 
 ```bash
 .
-├── Dockerfile                  
-├── README.md                   
+├── Dockerfile
+├── README.md
 ├── docker-compose.dev.yml      # Only use for development
 ├── docker-compose.yml          # deployment docker
 ├── flowchart.jpg               # Visual representation of the application flow
 ├── pip.conf                    # for docker to use nexus pip index
 ├── pyproject.toml              # Poetry configuration file
 ├── ruff.toml                   # Configuration file for Ruff (Python linter)
-└── procurement
+└── form
     ├── __init__.py
     ├── main.py                 # Main entry point of the application (FastAPI app)
-    ├── agents                  
+    ├── agents
     │   ├── __init__.py
     │   ├── agents_manager.py   # Manages different types of agents
     │   ├── base_agent.py       # Base class for all agents
@@ -65,13 +65,13 @@ Additionally, it uses the vector extension for PostgreSQL to store and search fo
     │       ├── check.py
     │       ├── sessions.py
     │       └── uuid.py
-    ├── db                      
+    ├── db
     │   ├── __init__.py         # initiate an async database connection
     │   ├── db_check.py         # Database health check
     │   ├── db_operations.py    # CRUD operations
     │   ├── db_tables.py        # Database table definitions
     │   └── init.pgsql          # Initial SQL for database setup
-    ├── models                  
+    ├── models
     │   ├── __init__.py
     │   ├── exceptions.py       # Custom exception classes
     │   ├── requests.py         # Request models
@@ -83,12 +83,12 @@ Additionally, it uses the vector extension for PostgreSQL to store and search fo
     │   ├── script.js
     │   └── styles.css
     ├── templates               # UI
-    │   └── index.html          
-    └── utils                   
+    │   └── index.html
+    └── utils
         ├── __init__.py
         ├── config.py           # Secret configuration
-        ├── form_handler.py     
-        └── text_handler.py     
+        ├── form_handler.py
+        └── text_handler.py
 ```
 
 
@@ -115,4 +115,4 @@ The agents infractions are as follows:
 - `NoteTakingAgent`: This agent is responsible for filling in the form fields based on the user's input prompt.
 - `SpecialistAgent`: This agent is responsible for handling specialist queries.
 - `ConversationAgent`: This agent is responsible for moving the conversation forward by asking the user for the next field to fill in the form.
-SpecialistAgent and ConversationAgent are run in parallel to handle the user's input prompt. 
+SpecialistAgent and ConversationAgent are run in parallel to handle the user's input prompt.

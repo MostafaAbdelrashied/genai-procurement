@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "procurement"
+name = "form"
 version = "0.1.0"
 description = "A multi-agent solution"
 authors = ["Abdelrashied, Mostafa <Mostafa.Abdelrashied@outlook.de>"]
 readme = "README.md"
-packages = [{ include = "procurement" }]
+packages = [{ include = "form" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -31,4 +31,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-app = "procurement.main:start"
+app = "form.main:start"

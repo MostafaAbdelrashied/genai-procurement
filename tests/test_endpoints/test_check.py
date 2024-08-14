@@ -1,7 +1,9 @@
-import pytest
-from procurement.db.db_tables import Message, Session
+from __future__ import annotations
 
-from tests.test_endpoints import client
+import pytest
+
+from form.db.db_tables import Message
+from form.db.db_tables import Session
 
 
 @pytest.mark.parametrize(

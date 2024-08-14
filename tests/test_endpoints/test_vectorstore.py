@@ -1,11 +1,10 @@
-import pytest
+from __future__ import annotations
+
 from uuid import uuid4
-from tests.test_endpoints import client
+
+import pytest
+
 from tests.test_endpoints.fixtures.vectorstore_fixture import (
-    sample_document,
-    sample_documents,
-    sample_document_uuid,
-    sample_documents_uuids,
     assert_valid_embedding,
 )
 
